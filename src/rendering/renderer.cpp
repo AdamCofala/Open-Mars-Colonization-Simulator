@@ -11,9 +11,8 @@ void Renderer::update(float dt) {
 void Renderer::draw() {
     BeginMode2D(camera.getCamera());
 
-    DrawIsoGrid(30, 30);
+    DrawIsoGrid(128, 128);
 
-    // center marker
     Vector2 center = IsoToScreen(0, 0);
     DrawCircle(center.x, center.y, 6, RED);
 
@@ -25,7 +24,7 @@ void Renderer::draw() {
 }
 
 void Renderer::shutdown() {
-    // nothing yet
+    UnloadTexture(tileTexture);
 }
 
 Vector2 Renderer::IsoToScreen(int x, int y) {
@@ -35,16 +34,20 @@ Vector2 Renderer::IsoToScreen(int x, int y) {
     return out;
 }
 
-void DrawIsoTile(Vector2 p, int size) {
-    Vector2 top = { p.x, p.y };
-    Vector2 right = { p.x + size / 2, p.y + size / 4 };
-    Vector2 bottom = { p.x, p.y + size / 2 };
-    Vector2 left = { p.x - size / 2, p.y + size / 4 };
+Vector2 Renderer::ScreenToIso(Vector2 pos) {
+    float x = pos.x;
+    float y = pos.y;
 
-    DrawLineV(top, right, DARKGRAY);
-    DrawLineV(right, bottom, DARKGRAY);
-    DrawLineV(bottom, left, DARKGRAY);
-    DrawLineV(left, top, DARKGRAY);
+    float isoX = (x / (tileSize / 2.0f) + y / (tileSize / 4.0f)) / 2.0f;
+    float isoY = (y / (tileSize / 4.0f) - (x / (tileSize / 2.0f))) / 2.0f;
+
+    return { isoX, isoY };
+}
+
+void Renderer::DrawIsoTile(Vector2 p, int size) {
+
+    DrawTexture(tileTexture, p.x, p.y, WHITE);
+
 }
 
 void Renderer::DrawIsoGrid(int w, int h) {

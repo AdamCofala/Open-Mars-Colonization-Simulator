@@ -4,7 +4,8 @@ project(OpenMars)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(PRODUCTION_BUILD OFF CACHE BOOL "Make this a production build" FORCE)
+# ---------- BUILD TYPE ----------
+set(PRODUCTION_BUILD OFF CACHE BOOL "Production build")
 
 # ---------- OPTIMIZATIONS ----------
 if(PRODUCTION_BUILD)
@@ -13,54 +14,62 @@ else()
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
 endif()
 
+# ---------- MSVC ----------
 if(MSVC)
     add_compile_options(/arch:AVX2)
-endif()
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY
+        "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>"
+    )
+
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+endif()
 
 # ---------- SOURCES ----------
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
-add_executable(${CMAKE_PROJECT_NAME} ${MY_SOURCES})
-
-set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-
-# ---------- RAYLIB ----------
-find_package(raylib REQUIRED)
-
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE raylib)
-
-# ---------- DEFINES ----------
-if(PRODUCTION_BUILD)
-    target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC RESOURCES_PATH="./resources/")
-    target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC PRODUCTION_BUILD=1)
-    target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC DEVELOPLEMT_BUILD=0)
-else()
-    target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC RESOURCES_PATH="${CMAKE_CURRENT_SOURCE_DIR}/resources/")
-    target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC PRODUCTION_BUILD=0)
-    target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC DEVELOPLEMT_BUILD=1)
-endif()
-
-# ---------- MSVC SETTINGS ----------
-if(MSVC)
-    target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC _CRT_SECURE_NO_WARNINGS)
-
-    # raylib + GUI = lepiej zostawić konsolę na debug
-    # jeśli chcesz okno bez konsoli, odkomentuj:
-    # set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
-endif()
+add_executable(${PROJECT_NAME} ${MY_SOURCES})
 
 # ---------- INCLUDE ----------
-target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 
-# ---------- OPENMP (opcjonalnie) ----------
+# ---------- RAYLIB ----------
+find_package(raylib REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
+
+# ---------- DEFINES ----------
+target_compile_definitions(${PROJECT_NAME} PUBLIC
+    RESOURCES_PATH="src/resources/"
+)
+
+if(PRODUCTION_BUILD)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC
+        PRODUCTION_BUILD=1
+        DEVELOPLEMT_BUILD=0
+    )
+else()
+    target_compile_definitions(${PROJECT_NAME} PUBLIC
+        PRODUCTION_BUILD=0
+        DEVELOPLEMT_BUILD=1
+    )
+endif()
+
+# ---------- COPY RESOURCES ----------
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/src/resources"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/resources/"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/src/resources/"
+)
+
+# ---------- OPENMP (opcjonalne) ----------
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+    target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 endif()
