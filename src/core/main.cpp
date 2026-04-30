@@ -1,4 +1,4 @@
-#include "rendering/renderer.h"
+#include "rendering/Renderer.h"
 #include "raylib.h"
 
 int main() {
