@@ -1,38 +1,15 @@
 #include "renderer.h"
 
 void Renderer::init() {
-    camera.target = { 0.0f, 0.0f };
-    camera.offset = { (float)GetScreenWidth() / 2, (float)GetScreenHeight() / 2 };
-    camera.rotation = 0.0f;
-    camera.zoom = 1.0f;
+   
 }
 
 void Renderer::update(float dt) {
-
-    // MOVE CAMERA (WASD)
-    if (IsKeyDown(KEY_A)) camera.target.x -= moveSpeed * dt;
-    if (IsKeyDown(KEY_D)) camera.target.x += moveSpeed * dt;
-    if (IsKeyDown(KEY_W)) camera.target.y -= moveSpeed * dt;
-    if (IsKeyDown(KEY_S)) camera.target.y += moveSpeed * dt;
-
-    // ZOOM
-    float wheel = GetMouseWheelMove();
-    if (wheel != 0) {
-        camera.zoom += wheel * zoomSpeed;
-        if (camera.zoom < 0.2f) camera.zoom = 0.2f;
-        if (camera.zoom > 3.0f) camera.zoom = 3.0f;
-    }
-
-    // DRAG (MMB)
-    if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
-        Vector2 delta = GetMouseDelta();
-        camera.target.x -= delta.x / camera.zoom;
-        camera.target.y -= delta.y / camera.zoom;
-    }
+	camera.update(dt);
 }
 
 void Renderer::draw() {
-    BeginMode2D(camera);
+    BeginMode2D(camera.getCamera());
 
     DrawIsoGrid(30, 30);
 

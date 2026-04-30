@@ -1,5 +1,6 @@
 #pragma once
 #include "raylib.h"
+#include "GameCamera.h"
 
 class Renderer {
 public:
@@ -9,14 +10,8 @@ public:
     void shutdown();
 
 private:
-    Camera2D camera{};
-
-    float moveSpeed = 500.0f;
-    float zoomSpeed = 0.1f;
-
     const int tileSize = 64;
-
-private:
+    GameCamera camera = GameCamera(IsoToScreen(0,0));
     Vector2 IsoToScreen(int x, int y);
     void DrawIsoGrid(int w, int h);
 };
