@@ -54,8 +54,11 @@ void Renderer::DrawIsoTile(Vector2 p, int size) const {
 void Renderer::DrawIsoGrid() {
     for (int x = -gridWidth; x < gridWidth; x++) {
         for (int y = -gridHeight; y < gridHeight; y++) {
-
             Vector2 p = IsoToScreen(x, y);
+            if (x % 2 == 0 && y % 2 == 0) {
+                p.y -= 16;
+            }
+
             DrawIsoTile(p, tileSize);
         }
 
