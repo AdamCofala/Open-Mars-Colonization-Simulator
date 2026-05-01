@@ -1,8 +1,8 @@
 #include "rendering/Renderer.h"
 #include "raylib.h"
 
-const unsigned int WIDTH = 1280;
-const unsigned int HEIGHT = 720;
+static constexpr unsigned int WIDTH = 1280;
+static constexpr unsigned int HEIGHT = 720;
 
 Renderer* renderer = nullptr;
 

@@ -14,9 +14,12 @@ public:
 
 private:
     const int tileSize = 64;
+	const int gridWidth = 128;
+	const int gridHeight = 128;
+
     GameCamera camera = GameCamera(IsoToScreen(0,0));
-    Vector2 IsoToScreen(int x, int y);
-    Vector2 ScreenToIso(Vector2 pos);
-    void DrawIsoTile(Vector2 p, int size);
-    void DrawIsoGrid(int w, int h);
+    Vector2 IsoToScreen(int x, int y) const;
+    Vector2 ScreenToIso(Vector2 pos) const;
+    void DrawIsoTile(Vector2 p, int size) const;
+    void DrawIsoGrid();
 };
