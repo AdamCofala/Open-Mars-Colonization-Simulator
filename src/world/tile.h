@@ -10,6 +10,7 @@ private:
     bool occupied;
     std::string baseTextureId;
     int slope_data[4]; // [0] north, [1] east, [2] south, [3] west, for example 0000 means flat, 1000 means slope north, 1100 means slope north-east, etc.
+	int level = 0; // Level of the tile (poziom morza type shit), used for rendering order and slope calculations
 
 public:
     void init(int startX, int startY, const std::string& textureId);
