@@ -2,6 +2,7 @@
 #include <omp.h>
 
 void Renderer::init() {
+
    
 }
 

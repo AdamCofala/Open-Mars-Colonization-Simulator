@@ -13,10 +13,13 @@ public:
     Texture2D tileTexture = LoadTexture(RESOURCES_PATH "Tile_0000.png");
 
 private:
+
+	// This also should be in map class !
     const int tileSize = 64;
 	const int gridWidth = 128;
 	const int gridHeight = 128;
 
+    // This is okay here
     GameCamera camera = GameCamera(IsoToScreen(0,0));
     Vector2 IsoToScreen(int x, int y) const;
     Vector2 ScreenToIso(Vector2 pos) const;
