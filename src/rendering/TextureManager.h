@@ -1,6 +1,8 @@
 #pragma once
 #include <array>
 #include "raylib.h"
+#include <string>
+#include <bitset>
 
 class TextureManager
 {
@@ -9,6 +11,10 @@ private:
 
 
     void init() {
+		load_tiles_textures();
+    }
+
+    void load_tiles_textures() {
         TileTextures[0b0000] = LoadTexture(RESOURCES_PATH "Tiles\\tile_0000.png");
         TileTextures[0b1000] = LoadTexture(RESOURCES_PATH "Tiles\\tile_1000.png");
         TileTextures[0b0100] = LoadTexture(RESOURCES_PATH "Tiles\\tile_0100.png");
@@ -23,7 +29,6 @@ private:
         TileTextures[0b1011] = LoadTexture(RESOURCES_PATH "Tiles\\tile_1011.png");
         TileTextures[0b1101] = LoadTexture(RESOURCES_PATH "Tiles\\tile_1101.png");
     }
-
 
     void UnloadTextures() {
         for (const auto& texture : TileTextures) {
