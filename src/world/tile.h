@@ -22,4 +22,9 @@ public:
     int getY() const;
     std::string getTextureId() const;
     int getSlopeData() const;
+    int getLevel() const;
+
+    void setLevel(int newLevel);
+    void setTextureId(const std::string& textureId);
+    void setSlopeData(const int newSlopeData[4]);
 };
