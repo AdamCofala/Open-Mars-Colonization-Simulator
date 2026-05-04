@@ -1,9 +1,10 @@
 #include "Renderer.h"
+#include "raylib.h"
+#include "TextureManager.h"
 #include <omp.h>
 
 void Renderer::init() {
-
-   
+    // Load any textures, shaders, etc. here
 }
 
 void Renderer::update(float dt) {
@@ -26,7 +27,6 @@ void Renderer::draw() {
 }
 
 void Renderer::shutdown() {
-    UnloadTexture(tileTexture);
 }
 
 Vector2 Renderer::IsoToScreen(int x, int y) const {
@@ -48,7 +48,9 @@ Vector2 Renderer::ScreenToIso(Vector2 pos) const {
 
 void Renderer::DrawIsoTile(Vector2 p, int size) const {
 
-    DrawTexture(tileTexture, p.x, p.y, WHITE);
+    int tmp[4] = {0, 0, 0, 0};
+	Texture2D txt = txt_manager.map_slope_to_texture(tmp);
+    DrawTexture(txt, p.x, p.y, WHITE);
 
 }
 

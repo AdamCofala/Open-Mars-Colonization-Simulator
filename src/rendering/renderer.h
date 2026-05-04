@@ -1,16 +1,17 @@
 #pragma once
 #include "raylib.h"
 #include "GameCamera.h"
+#include "TextureManager.h"
 
 class Renderer {
 public:
+    Renderer() = default;
     void init();
     void update(float dt);
     void draw();
     void shutdown();
 
-	// Temporary here, will be moved to a tile structure later
-    Texture2D tileTexture = LoadTexture(RESOURCES_PATH "Tile_0000.png");
+    ~Renderer() = default;
 
 private:
 
@@ -20,7 +21,8 @@ private:
 	const int gridHeight = 128;
 
     // This is okay here
-    GameCamera camera = GameCamera(IsoToScreen(0,0));
+    GameCamera camera = GameCamera(IsoToScreen(0, 0));
+	TextureManager txt_manager;
     Vector2 IsoToScreen(int x, int y) const;
     Vector2 ScreenToIso(Vector2 pos) const;
     void DrawIsoTile(Vector2 p, int size) const;

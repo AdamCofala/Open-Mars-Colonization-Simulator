@@ -13,7 +13,7 @@ private:
 	int level = 0; // Level of the tile (poziom morza type shit), used for rendering order and slope calculations
 
 public:
-    void init(int startX, int startY, const std::string& textureId);
+    void init(int startX, int startY, int slope_data[4]); //Default slop data should be 0000
 
     bool isOccupied() const;
     void setOccupied(bool state);
