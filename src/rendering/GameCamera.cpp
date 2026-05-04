@@ -1,4 +1,4 @@
-#include "GameCamera.h"
+﻿#include "GameCamera.h"
 #include <algorithm>
 
 
@@ -32,16 +32,28 @@ void GameCamera::update(float dt) {
 	update_zoom(dt);
 }
 
+
 void GameCamera::update_movement(float dt) {
     if (IsKeyDown(KEY_A)) camera.target.x -= moveSpeed * dt;
     if (IsKeyDown(KEY_D)) camera.target.x += moveSpeed * dt;
     if (IsKeyDown(KEY_W)) camera.target.y -= moveSpeed * dt;
     if (IsKeyDown(KEY_S)) camera.target.y += moveSpeed * dt;
 
+    Vector2 mouseDelta = GetMouseDelta();
+
     if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
-        Vector2 mouseDelta = GetMouseDelta();
         camera.target.x -= mouseDelta.x / camera.zoom;
         camera.target.y -= mouseDelta.y / camera.zoom;
+    }
+
+    // Openttd RMB Logic
+    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+		HideCursor();
+        camera.target.x -= mouseDelta.x / camera.zoom;
+        camera.target.y -= mouseDelta.y / camera.zoom;
+	}
+	else { 
+        ShowCursor();
 	}
 }
 
