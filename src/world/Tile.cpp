@@ -1,4 +1,7 @@
-void Tile::init(int startX, int startY, int* init_slope_data) {
+#include "Tile.h"
+
+
+void Tile::init(int startX, int startY, int init_slope_data[4]) {
     x = startX;
     y = startY;
     occupied = false;
@@ -38,8 +41,9 @@ std::string Tile::getTextureId() const {
     return baseTextureId;
 }
 
-const int Tile::getSlopeData() const {
-    return slope_data;
+std::vector<int> Tile::getSlopeData() {
+    std::vector<int> slopeVector(slope_data, slope_data + 4);
+    return slopeVector;
 }
 
 int Tile::getLevel() const {
@@ -54,7 +58,7 @@ void Tile::setTextureId(const std::string& textureId) {
     baseTextureId = textureId;
 }
 
-void Tile::setSlopeData(const int newSlopeData[4]) {
+void Tile::setSlopeData(int newSlopeData[4]) {
     for (int i = 0; i < 4; ++i) {
         slope_data[i] = newSlopeData[i];
     }

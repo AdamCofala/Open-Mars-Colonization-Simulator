@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 // TODO : Please implement methods, getters, setters, and any additional members you think are necessary for the Tile class
 
@@ -21,10 +22,10 @@ public:
     int getX() const;
     int getY() const;
     std::string getTextureId() const;
-    int getSlopeData() const;
+    std::vector<int> getSlopeData();
     int getLevel() const;
 
     void setLevel(int newLevel);
     void setTextureId(const std::string& textureId);
-    void setSlopeData(const int newSlopeData[4]);
+    void setSlopeData(int newSlopeData[4]);
 };
