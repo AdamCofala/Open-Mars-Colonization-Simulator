@@ -5,11 +5,16 @@
 
 class Structure {
 private:
-		std::string textureId;
+	int x;
+	int y;
+	std::string textureId;
 		// TODO : add more members here, such as production data, resources etc.
 
 public:
 	virtual void init();
 	virtual void update(float dt) = 0;
 	virtual std::string getTextureId();
+
+	virtual int getX();
+	virtual int getY();
 };
