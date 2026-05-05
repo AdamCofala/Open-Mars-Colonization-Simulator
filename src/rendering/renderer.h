@@ -18,7 +18,7 @@ private:
 
 	// This also should be in map class !
     const int tileSize = 64;
-	static const int HEIGHT_OFFSET = 16;
+	static const int HEIGHT_OFFSET = 8;
 
     // This is okay here
     GameCamera camera = GameCamera(IsoToScreen(0, 0));

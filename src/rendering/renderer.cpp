@@ -62,10 +62,20 @@ Vector2 Renderer::ScreenToIso(Vector2 pos) const {
 }
 
 void Renderer::DrawIsoTile(const Tile& tile, Vector2 pos) const {
-
     auto slope_vec = tile.getSlopeData();
     Texture2D& txt = txt_manager.map_slope_to_texture(slope_vec.data());
-    DrawTexture(txt, pos.x, pos.y - tile.getLevel()*HEIGHT_OFFSET, WHITE);
 
+    // N vertex tile'a zawsze na pos.y
+    // Ka¿da tekstura ma N na swoim top pikselu (y=0)
+    // Ale N vertex w world space zale¿y od slope - ile rogów jest "wysoko"
+    // slope_data[0]=N, ile z N/W/E/S rogów jest wy¿ej
+    auto& s = slope_vec;
+    int n_raised = s[0]; // czy N róg jest wy¿ej o 1 level
+
+    int drawX = (int)pos.x - txt.width / 2;
+    int drawY = (int)pos.y
+        - n_raised * HEIGHT_OFFSET          // N wy¿ej = przesuñ w górê
+        - tile.getLevel() * HEIGHT_OFFSET;
+
+    DrawTexture(txt, drawX, drawY, WHITE);
 }
-
