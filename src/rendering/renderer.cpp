@@ -17,13 +17,21 @@ void Renderer::draw(const Map& map) {
 
     Vector2 center = IsoToScreen(0, 0);
 
-    for (int y = 0; y < map.getHeight(); ++y) {
-        for (int x = 0; x < map.getWidth(); ++x) {
-            DrawIsoTile(map.getTile(x, y));
+    int halfW = map.getWidth() / 2;
+    int halfH = map.getHeight() / 2;
+
+    for (int y = -halfH; y < halfH; y++) {
+        for (int x = -halfW; x < halfW; x++) {
+
+            const Tile& tile = map.getTile(x + halfW, y + halfH);
+
+            Vector2 pos = IsoToScreen(x, y); 
+            DrawIsoTile(tile, pos);
+
         }
     }
 
-	EndMode2D();
+   	EndMode2D();
 
     DrawText("Mars TTD - Isometric Prototype", 10, 10, 20, WHITE);
     DrawFPS(10, 40);
@@ -50,18 +58,11 @@ Vector2 Renderer::ScreenToIso(Vector2 pos) const {
     return { isoX, isoY };
 }
 
-void Renderer::DrawIsoTile(const Tile& tile) const {
+void Renderer::DrawIsoTile(const Tile& tile, Vector2 pos) const {
 
-	auto slope_vec= tile.getSlopeData();
-	int* slope_data = new int[4];
-    for (int i = 0; i < 4; ++i) {
-        slope_data[i] = slope_vec[i];
-	}
-
-	Texture2D txt = txt_manager.map_slope_to_texture(slope_data);
-    Vector2 pos = IsoToScreen(tile.getX(), tile.getY());
+    auto slope_vec = tile.getSlopeData();
+    Texture2D& txt = txt_manager.map_slope_to_texture(slope_vec.data());
     DrawTexture(txt, pos.x, pos.y - tile.getLevel()*16, WHITE);
 
-    delete[] slope_data;
 }
 

@@ -18,13 +18,11 @@ private:
 
 	// This also should be in map class !
     const int tileSize = 64;
-	const int gridWidth = 128;
-	const int gridHeight = 128;
 
     // This is okay here
     GameCamera camera = GameCamera(IsoToScreen(0, 0));
 	TextureManager txt_manager;
     Vector2 IsoToScreen(int x, int y) const;
     Vector2 ScreenToIso(Vector2 pos) const;
-    void DrawIsoTile(const Tile& tile) const;
+    void DrawIsoTile(const Tile& tile, Vector2 pos) const;
 };
