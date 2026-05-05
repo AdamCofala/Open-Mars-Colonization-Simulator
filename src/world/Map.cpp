@@ -1,4 +1,4 @@
-#include "Map.h"
+﻿#include "Map.h"
 #include "utils/PerlinNoise.h"
 #include <stdexcept>
 #include <random>
@@ -22,145 +22,128 @@ void Map::init(int w, int h) {
     }
 }
 
-
-static void clampSlopes(std::vector<std::vector<int>>& vertex, int width, int height) {
-    bool changed = true;
-    while (changed) {
-        changed = false;
-        for (int y = 0; y <= height; y++) {
-            for (int x = 0; x <= width; x++) {
-                int dx[] = { 1, -1, 0, 0 };
-                int dy[] = { 0, 0, 1, -1 };
-                for (int d = 0; d < 4; d++) {
-                    int nx = x + dx[d], ny = y + dy[d];
-                    if (nx < 0 || nx > width || ny < 0 || ny > height) continue;
-                    if (vertex[y][x] - vertex[ny][nx] > 1) {
-                        vertex[y][x] = vertex[ny][nx] + 1;
-                        changed = true;
-                    }
+// Pojedynczy przebieg klampowania nachyleń (różnica max 1)
+static bool clampSlopesPass(std::vector<std::vector<int>>& vertex,
+    int width, int height) {
+    bool changed = false;
+    const int dx[4] = { 1, -1, 0, 0 };
+    const int dy[4] = { 0, 0, 1, -1 };
+    for (int y = 0; y <= height; ++y) {
+        for (int x = 0; x <= width; ++x) {
+            for (int d = 0; d < 4; ++d) {
+                int nx = x + dx[d], ny = y + dy[d];
+                if (nx < 0 || nx > width || ny < 0 || ny > height) continue;
+                if (vertex[y][x] - vertex[ny][nx] > 1) {
+                    vertex[y][x] = vertex[ny][nx] + 1;
+                    changed = true;
                 }
             }
         }
     }
+    return changed;
 }
 
-static void fixSaddles(std::vector<std::vector<int>>& vertex, int width, int height) {
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            int& vN = vertex[y][x];
-            int& vE = vertex[y][x + 1];
-            int& vS = vertex[y + 1][x + 1];
-            int& vW = vertex[y + 1][x];
+// Sprawdzenie, czy kafelek ma niedozwolony układ siodła (0101 lub 1010)
+static bool invalidTile(const std::vector<std::vector<int>>& vertex,
+    int x, int y) {
+    int vN = vertex[y][x];
+    int vE = vertex[y][x + 1];
+    int vS = vertex[y + 1][x + 1];
+    int vW = vertex[y + 1][x];
+    int minH = std::min({ vN, vE, vS, vW });
+    int maxH = std::max({ vN, vE, vS, vW });
+    return (maxH - minH > 1);   // za stromo – też do spłaszczenia
+ }
 
-            int minH = std::min({ vN, vE, vS, vW });
-            int mask = ((vN > minH) << 3) | ((vE > minH) << 2) |
-                ((vS > minH) << 1) | (vW > minH);
+// Spłaszczenie niepoprawnego kafelka: wszystkie rogi = min+1
+static void flattenTile(std::vector<std::vector<int>>& vertex,
+    int x, int y) {
+    int& vN = vertex[y][x];
+    int& vE = vertex[y][x + 1];
+    int& vS = vertex[y + 1][x + 1];
+    int& vW = vertex[y + 1][x];
+    int minH = std::min({ vN, vE, vS, vW });
+    vN = vE = vS = vW = minH + 1;
+}
 
-            if (mask == 0b0101) { vN = minH + 1; vS = minH + 1; }
-            if (mask == 0b1010) { vE = minH + 1; vW = minH + 1; }
+// Główna pętla: spłaszcz siodła → koryguj nachylenia → powtarzaj do skutku
+static void enforceValidTerrain(std::vector<std::vector<int>>& vertex,
+    int width, int height) {
+    constexpr int MAX_ITER = 100;
+    for (int iter = 0; iter < MAX_ITER; ++iter) {
+        bool changed = false;
+
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                if (invalidTile(vertex, x, y)) {
+                    flattenTile(vertex, x, y);
+                    changed = true;
+                }
+            }
         }
+
+        // Wymuś nachylenie ≤1
+       /* f (clampSlopesPass(vertex, width, height))
+            changed = true;*/
+
+        if (!changed) break;
     }
 }
 
-
-static bool isTileValid(const Tile& tile) {
-	auto data = tile.getSlopeData();
-	int min = std::min({ data[0], data[1], data[2], data[3] });
-	int max = std::max({ data[0], data[1], data[2], data[3] });
-	return (max - min) <= 1;
-}
-
-
-
-static int randomInt(int min, int max)
-{
+int randInt(int min, int max) {
     static std::mt19937 rng(std::random_device{}());
     std::uniform_int_distribution<int> dist(min, max);
     return dist(rng);
 }
 
+void Map::generateTerrain() {
+    PerlinNoise perlin(randInt(0, 10000));
 
-void Map::generateTerrain()
-
-{
-    PerlinNoise perlin(1024);
-
-
-    const float scale = 0.04f;
+    const float scale = 0.05f;
     const float warpStrength = 6.0f;
-    const int maxHeight = 12;
+    const int maxHeight = 10;
 
     std::vector<std::vector<int>> vertex(height + 1,
         std::vector<int>(width + 1));
 
-    // 1. DOMAIN WARPED HEIGHT
+    // 1. Szum z domain warpingiem
     for (int y = 0; y <= height; y++) {
         for (int x = 0; x <= width; x++) {
-
             float nx = perlin.noise(x * scale, y * scale);
             float ny = perlin.noise((x + 1000) * scale, (y + 1000) * scale);
-
             float warped = perlin.noise((x + nx * warpStrength) * scale,
                 (y + ny * warpStrength) * scale);
-
-			warped = pow(warped, 3.0f);
-
+            warped = pow(warped, 3.0f);
             vertex[y][x] = (int)(warped * maxHeight);
         }
     }
 
-    // 2. LIGHT SMOOTHING (cheap erosion feel)
-    for (int i = 0; i < 2; i++) {
-        auto copy = vertex;
+    // 3. Zapewnij poprawność wewnątrz mapy (bez iteracji poprawek po wygładzeniu)
+    enforceValidTerrain(vertex, width, height);
 
-        for (int y = 1; y < height; y++) {
-            for (int x = 1; x < width; x++) {
-
-                int sum =
-                    vertex[y][x] +
-                    vertex[y - 1][x] +
-                    vertex[y + 1][x] +
-                    vertex[y][x - 1] +
-                    vertex[y][x + 1];
-
-                copy[y][x] = sum / 5;
-            }
+    // 4. Skopiuj krawędzie i ponownie wymuś poprawność
+    auto clampEdges = [&](std::vector<std::vector<int>>& v) {
+        for (int x = 0; x <= width; x++) {
+            v[0][x] = v[1][x];
+            v[height][x] = v[height - 1][x];
         }
-
-        vertex = std::move(copy);
-    }
-   
-	fixSaddles(vertex, width, height);
-	clampSlopes(vertex, width, height);
-
-    auto clampEdges = [&](std::vector<std::vector<int>>& v)
-        {
-            for (int x = 0; x <= width; x++)
-            {
-                v[0][x] = v[1][x];
-                v[height][x] = v[height - 1][x];
-            }
-
-            for (int y = 0; y <= height; y++)
-            {
-                v[y][0] = v[y][1];
-                v[y][width] = v[y][width - 1];
-            }
+        for (int y = 0; y <= height; y++) {
+            v[y][0] = v[y][1];
+            v[y][width] = v[y][width - 1];
+        }
         };
+    clampEdges(vertex);
+    enforceValidTerrain(vertex, width, height);
 
-	clampEdges(vertex);
-
-    // 3. TILE BUILD (NESW-safe)
+    // 5. Budowa kafelków (NESW)
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-
             int vN = vertex[y][x];
             int vE = vertex[y][x + 1];
             int vS = vertex[y + 1][x + 1];
             int vW = vertex[y + 1][x];
 
             int minH = std::min({ vN, vE, vS, vW });
-
             Tile& tile = tiles[y * width + x];
             tile.setLevel(minH);
 
@@ -170,11 +153,11 @@ void Map::generateTerrain()
                 vS > minH,
                 vW > minH
             };
-
             tile.setSlopeData(slope);
         }
     }
 }
+
 
 Tile& Map::getTile(int x, int y) const
 {

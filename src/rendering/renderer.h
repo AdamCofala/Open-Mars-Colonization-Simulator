@@ -24,4 +24,5 @@ private:
     Vector2 IsoToScreen(int x, int y) const;
     Vector2 ScreenToIso(Vector2 pos) const;
     void DrawIsoTile(const Tile& tile, Vector2 pos) const;
+	void RenderTerrain(const Map& map);
 };

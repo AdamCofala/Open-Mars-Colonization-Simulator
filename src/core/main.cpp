@@ -16,7 +16,7 @@ void init()
 {
 	// TODO add throw if renderer is already initialized and delete it before reinitializing, also check width and height
     // Any global initialization can go here
-	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Mars TTD - Isometric Prototype");
+	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Open Mars 1.0.0-alpha.1");
 	renderer = new Renderer();
 	renderer->init();
 

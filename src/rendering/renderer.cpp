@@ -14,11 +14,20 @@ void Renderer::update(float dt) {
 void Renderer::draw(const Map& map) {
     BeginMode2D(camera.getCamera());
 
+	RenderTerrain(map);
+       
+    EndMode2D();
+
+    DrawFPS(10, 40);
+}
+
+void Renderer::RenderTerrain(const Map& map) {
+
+	// Render only tiles that are visible on the screen, based on camera position and zoom
     Camera2D cam = camera.getCamera();
     int halfW = map.getWidth() / 2;
     int halfH = map.getHeight() / 2;
 
-    // 4 naro¿niki ekranu -> world space -> iso space
     Vector2 corners[4] = {
         GetScreenToWorld2D({0, 0}, cam),
         GetScreenToWorld2D({(float)GetScreenWidth(), 0}, cam),
@@ -35,11 +44,9 @@ void Renderer::draw(const Map& map) {
         maxY = std::max(maxY, (int)ceil(iso.y));
     }
 
-    // Margines na slope'y które wystawiaj¹ w górê
     minY -= 2; minX -= 2;
     maxY += 2; maxX += 2;
 
-    // Clamp do granic mapy
     minX = std::max(minX, -halfW);
     maxX = std::min(maxX, halfW);
     minY = std::max(minY, -halfH);
@@ -52,10 +59,6 @@ void Renderer::draw(const Map& map) {
             DrawIsoTile(tile, pos);
         }
     }
-
-    EndMode2D();
-    DrawText("Mars TTD - Isometric Prototype", 10, 10, 20, WHITE);
-    DrawFPS(10, 40);
 }
 
 void Renderer::shutdown() {
