@@ -3,16 +3,16 @@
 
 class Inventory {
 private:
-    std::unordered_map<ResourceType, int> items;
+    std::unordered_map<MaterialType, int> items;
     int maxCapacity;
 
 public:
     void init(int capacity = 100);
 
-    void addResource(ResourceType type, int amount);
-    bool hasResource(ResourceType type, int amount) const;
+    void addResource(MaterialType type, int amount);
+    bool hasResource(MaterialType type, int amount) const;
 
-    int getAmount(ResourceType type) const;
+    int getAmount(MaterialType type) const;
     int getMaxCapacity() const;
     int getCurrentLoad() const;
 

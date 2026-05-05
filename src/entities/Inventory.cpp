@@ -5,11 +5,11 @@ void Inventory::init(int capacity) {
     items.clear();
 }
 
-void Inventory::addResource(ResourceType type, int amount) {
+void Inventory::addResource(MaterialType type, int amount) {
     items[type] += amount;
 }
 
-bool Inventory::hasResource(ResourceType type, int amount) const {
+bool Inventory::hasResource(MaterialType type, int amount) const {
     auto it = items.find(type);
     if (it != items.end()) {
         return it->second >= amount;
@@ -17,7 +17,7 @@ bool Inventory::hasResource(ResourceType type, int amount) const {
     return false;
 }
 
-int Inventory::getAmount(ResourceType type) const {
+int Inventory::getAmount(MaterialType type) const {
     auto it = items.find(type);
     if (it != items.end()) {
         return it->second;
