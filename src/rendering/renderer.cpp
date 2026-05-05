@@ -14,31 +14,48 @@ void Renderer::update(float dt) {
 void Renderer::draw(const Map& map) {
     BeginMode2D(camera.getCamera());
 
-
-    Vector2 center = IsoToScreen(0, 0);
-
-    // TODO : Add culling render - rendering only what we see, huge optimization!
-   
+    Camera2D cam = camera.getCamera();
     int halfW = map.getWidth() / 2;
     int halfH = map.getHeight() / 2;
 
-    for (int y = -halfH; y < halfH; y++) {
-        for (int x = -halfW; x < halfW; x++) {
+    // 4 naro¿niki ekranu -> world space -> iso space
+    Vector2 corners[4] = {
+        GetScreenToWorld2D({0, 0}, cam),
+        GetScreenToWorld2D({(float)GetScreenWidth(), 0}, cam),
+        GetScreenToWorld2D({0, (float)GetScreenHeight()}, cam),
+        GetScreenToWorld2D({(float)GetScreenWidth(), (float)GetScreenHeight()}, cam)
+    };
 
+    int minX = INT_MAX, maxX = INT_MIN, minY = INT_MAX, maxY = INT_MIN;
+    for (auto& c : corners) {
+        Vector2 iso = ScreenToIso(c);
+        minX = std::min(minX, (int)floor(iso.x));
+        maxX = std::max(maxX, (int)ceil(iso.x));
+        minY = std::min(minY, (int)floor(iso.y));
+        maxY = std::max(maxY, (int)ceil(iso.y));
+    }
+
+    // Margines na slope'y które wystawiaj¹ w górê
+    minY -= 2; minX -= 2;
+    maxY += 2; maxX += 2;
+
+    // Clamp do granic mapy
+    minX = std::max(minX, -halfW);
+    maxX = std::min(maxX, halfW);
+    minY = std::max(minY, -halfH);
+    maxY = std::min(maxY, halfH);
+
+    for (int y = minY; y < maxY; y++) {
+        for (int x = minX; x < maxX; x++) {
             const Tile& tile = map.getTile(x + halfW, y + halfH);
-
-            Vector2 pos = IsoToScreen(x, y); 
-
+            Vector2 pos = IsoToScreen(x, y);
             DrawIsoTile(tile, pos);
-
         }
     }
 
-   	EndMode2D();
-
+    EndMode2D();
     DrawText("Mars TTD - Isometric Prototype", 10, 10, 20, WHITE);
     DrawFPS(10, 40);
-
 }
 
 void Renderer::shutdown() {

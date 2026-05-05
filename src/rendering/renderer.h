@@ -16,11 +16,9 @@ public:
 
 private:
 
-	// This also should be in map class !
     const int tileSize = 64;
-	static const int HEIGHT_OFFSET = 8;
+	const int HEIGHT_OFFSET = 8;
 
-    // This is okay here
     GameCamera camera = GameCamera(IsoToScreen(0, 0));
 	TextureManager txt_manager;
     Vector2 IsoToScreen(int x, int y) const;

@@ -15,7 +15,7 @@ private:
     std::vector<Structure> structures;
 
 public:
-    void init(int w = 128, int h = 128);
+    void init(int w = 191, int h = 191);
     void generateTerrain(); // This one u can leave on me
 
     Tile& getTile(int x, int y) const;

@@ -2,8 +2,11 @@
 #include "world/Map.h"
 #include "raylib.h"
 
-static constexpr unsigned int WIDTH = 1280;
-static constexpr unsigned int HEIGHT = 720;
+static constexpr unsigned int WINDOW_WIDTH = 1280;
+static constexpr unsigned int WINDOW_HEIGHT = 720;
+
+static constexpr unsigned int MAP_WIDTH = 128;
+static constexpr unsigned int MAP_HEIGHT = 128;
 
 Renderer* renderer = nullptr;
 Map* map = nullptr;
@@ -13,12 +16,12 @@ void init()
 {
 	// TODO add throw if renderer is already initialized and delete it before reinitializing, also check width and height
     // Any global initialization can go here
-	InitWindow(WIDTH, HEIGHT, "Mars TTD - Isometric Prototype");
+	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Mars TTD - Isometric Prototype");
 	renderer = new Renderer();
 	renderer->init();
 
     map = new Map();
-    map->init();
+    map->init(MAP_WIDTH, MAP_HEIGHT);
 	map->generateTerrain();
     
 }
