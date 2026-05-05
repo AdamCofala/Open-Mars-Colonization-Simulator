@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include "MaterialType.h"
 
 class Inventory {
 private:
@@ -6,8 +7,6 @@ private:
     int maxCapacity;
 
 public:
-    Inventory(int capacity);
-
     void init(int capacity = 100);
 
     void addResource(ResourceType type, int amount);
