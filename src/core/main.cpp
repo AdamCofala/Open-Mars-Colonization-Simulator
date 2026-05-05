@@ -19,6 +19,8 @@ void init()
 
     map = new Map();
     map->init();
+	map->generateTerrain();
+    
 }
 
 void update(float dt)

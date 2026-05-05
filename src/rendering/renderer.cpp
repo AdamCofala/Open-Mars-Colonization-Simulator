@@ -17,6 +17,8 @@ void Renderer::draw(const Map& map) {
 
     Vector2 center = IsoToScreen(0, 0);
 
+    // TODO : Add culling render - rendering only what we see, huge optimization!
+   
     int halfW = map.getWidth() / 2;
     int halfH = map.getHeight() / 2;
 
@@ -26,6 +28,7 @@ void Renderer::draw(const Map& map) {
             const Tile& tile = map.getTile(x + halfW, y + halfH);
 
             Vector2 pos = IsoToScreen(x, y); 
+
             DrawIsoTile(tile, pos);
 
         }
@@ -62,7 +65,7 @@ void Renderer::DrawIsoTile(const Tile& tile, Vector2 pos) const {
 
     auto slope_vec = tile.getSlopeData();
     Texture2D& txt = txt_manager.map_slope_to_texture(slope_vec.data());
-    DrawTexture(txt, pos.x, pos.y - tile.getLevel()*16, WHITE);
+    DrawTexture(txt, pos.x, pos.y - tile.getLevel()*HEIGHT_OFFSET, WHITE);
 
 }
 

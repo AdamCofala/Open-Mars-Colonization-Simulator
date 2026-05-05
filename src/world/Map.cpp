@@ -1,4 +1,5 @@
 #include "Map.h"
+#include "utils/PerlinNoise.h"
 #include <stdexcept>
 
 void Map::init(int w, int h) {
@@ -18,6 +19,11 @@ void Map::init(int w, int h) {
             tiles[i].init(x, y, nullptr);
         }
     }
+}
+
+
+void Map::generateTerrain()
+{
 }
 
 Tile& Map::getTile(int x, int y) const
