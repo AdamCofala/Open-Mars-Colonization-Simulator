@@ -23,4 +23,6 @@ public:
 
     int getWidth() const;
     int getHeight() const;
+
+    void setStructure(const Structure& newStructure);
 };
