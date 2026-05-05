@@ -15,19 +15,19 @@ private:
     }
 
     void load_tiles_textures() {
-        TileTextures[0b0000] = LoadTexture(RESOURCES_PATH "Tiles\\tile_0000.png");
-        TileTextures[0b1000] = LoadTexture(RESOURCES_PATH "Tiles\\tile_1000.png");
-        TileTextures[0b0100] = LoadTexture(RESOURCES_PATH "Tiles\\tile_0100.png");
-        TileTextures[0b0010] = LoadTexture(RESOURCES_PATH "Tiles\\tile_0010.png");
-        TileTextures[0b0001] = LoadTexture(RESOURCES_PATH "Tiles\\tile_0001.png");
-        TileTextures[0b1100] = LoadTexture(RESOURCES_PATH "Tiles\\tile_1100.png");
-        TileTextures[0b0110] = LoadTexture(RESOURCES_PATH "Tiles\\tile_0110.png");
-        TileTextures[0b0011] = LoadTexture(RESOURCES_PATH "Tiles\\tile_0011.png");
-        TileTextures[0b1001] = LoadTexture(RESOURCES_PATH "Tiles\\tile_1001.png");
-        TileTextures[0b1110] = LoadTexture(RESOURCES_PATH "Tiles\\tile_1110.png");
-        TileTextures[0b0111] = LoadTexture(RESOURCES_PATH "Tiles\\tile_0111.png");
-        TileTextures[0b1011] = LoadTexture(RESOURCES_PATH "Tiles\\tile_1011.png");
-        TileTextures[0b1101] = LoadTexture(RESOURCES_PATH "Tiles\\tile_1101.png");
+        TileTextures[0b0000] = LoadTexture(RESOURCES_PATH "Tiles/tile_0000.png");
+        TileTextures[0b1000] = LoadTexture(RESOURCES_PATH "Tiles/tile_1000.png");
+        TileTextures[0b0100] = LoadTexture(RESOURCES_PATH "Tiles/tile_0100.png");
+        TileTextures[0b0010] = LoadTexture(RESOURCES_PATH "Tiles/tile_0010.png");
+        TileTextures[0b0001] = LoadTexture(RESOURCES_PATH "Tiles/tile_0001.png");
+        TileTextures[0b1100] = LoadTexture(RESOURCES_PATH "Tiles/tile_1100.png");
+        TileTextures[0b0110] = LoadTexture(RESOURCES_PATH "Tiles/tile_0110.png");
+        TileTextures[0b0011] = LoadTexture(RESOURCES_PATH "Tiles/tile_0011.png");
+        TileTextures[0b1001] = LoadTexture(RESOURCES_PATH "Tiles/tile_1001.png");
+        TileTextures[0b1110] = LoadTexture(RESOURCES_PATH "Tiles/tile_1110.png");
+        TileTextures[0b0111] = LoadTexture(RESOURCES_PATH "Tiles/tile_0111.png");
+        TileTextures[0b1011] = LoadTexture(RESOURCES_PATH "Tiles/tile_1011.png");
+        TileTextures[0b1101] = LoadTexture(RESOURCES_PATH "Tiles/tile_1101.png");
     }
 
     void UnloadTextures() {

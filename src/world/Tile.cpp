@@ -13,7 +13,6 @@ void Tile::init(int startX, int startY, int init_slope_data[4]) {
             slope_data[i] = init_slope_data[i];
         }
     }
-    // kiedy nie nic nie mówisz to masz p³aski teren jak decha
     else {
         for (int i = 0; i < 4; ++i) {
             slope_data[i] = 0;
@@ -41,7 +40,7 @@ std::string Tile::getTextureId() const {
     return baseTextureId;
 }
 
-std::vector<int> Tile::getSlopeData() {
+std::vector<int> Tile::getSlopeData() const {
     std::vector<int> slopeVector(slope_data, slope_data + 4);
     return slopeVector;
 }

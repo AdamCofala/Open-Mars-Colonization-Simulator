@@ -1,10 +1,13 @@
 #include "rendering/Renderer.h"
+#include "world/Map.h"
 #include "raylib.h"
 
 static constexpr unsigned int WIDTH = 1280;
 static constexpr unsigned int HEIGHT = 720;
 
 Renderer* renderer = nullptr;
+Map* map = nullptr;
+
 
 void init()
 {
@@ -13,6 +16,9 @@ void init()
 	InitWindow(WIDTH, HEIGHT, "Mars TTD - Isometric Prototype");
 	renderer = new Renderer();
 	renderer->init();
+
+    map = new Map();
+    map->init();
 }
 
 void update(float dt)
@@ -26,7 +32,7 @@ void draw()
     // Any global drawing logic can go here
     BeginDrawing();
     ClearBackground(BLACK);
-    renderer->draw();
+    renderer->draw(*map);
     EndDrawing();
 }
 

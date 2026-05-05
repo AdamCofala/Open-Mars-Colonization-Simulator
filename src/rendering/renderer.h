@@ -2,13 +2,14 @@
 #include "raylib.h"
 #include "GameCamera.h"
 #include "TextureManager.h"
+#include "world/Map.h"
 
 class Renderer {
 public:
     Renderer() = default;
     void init();
     void update(float dt);
-    void draw();
+    void draw(const Map& map);
     void shutdown();
 
     ~Renderer() = default;
@@ -25,6 +26,5 @@ private:
 	TextureManager txt_manager;
     Vector2 IsoToScreen(int x, int y) const;
     Vector2 ScreenToIso(Vector2 pos) const;
-    void DrawIsoTile(Vector2 p, int size) const;
-    void DrawIsoGrid();
+    void DrawIsoTile(const Tile& tile) const;
 };

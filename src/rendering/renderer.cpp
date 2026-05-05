@@ -11,15 +11,19 @@ void Renderer::update(float dt) {
 	camera.update(dt);
 }
 
-void Renderer::draw() {
+void Renderer::draw(const Map& map) {
     BeginMode2D(camera.getCamera());
 
-    DrawIsoGrid();
 
     Vector2 center = IsoToScreen(0, 0);
-    DrawCircle(center.x, center.y, 6, RED);
 
-    EndMode2D();
+    for (int y = 0; y < map.getHeight(); ++y) {
+        for (int x = 0; x < map.getWidth(); ++x) {
+            DrawIsoTile(map.getTile(x, y));
+        }
+    }
+
+	EndMode2D();
 
     DrawText("Mars TTD - Isometric Prototype", 10, 10, 20, WHITE);
     DrawFPS(10, 40);
@@ -46,24 +50,18 @@ Vector2 Renderer::ScreenToIso(Vector2 pos) const {
     return { isoX, isoY };
 }
 
-void Renderer::DrawIsoTile(Vector2 p, int size) const {
+void Renderer::DrawIsoTile(const Tile& tile) const {
 
-    int tmp[4] = {0, 0, 0, 0};
-	Texture2D txt = txt_manager.map_slope_to_texture(tmp);
-    DrawTexture(txt, p.x, p.y, WHITE);
+	auto slope_vec= tile.getSlopeData();
+	int* slope_data = new int[4];
+    for (int i = 0; i < 4; ++i) {
+        slope_data[i] = slope_vec[i];
+	}
 
+	Texture2D txt = txt_manager.map_slope_to_texture(slope_data);
+    Vector2 pos = IsoToScreen(tile.getX(), tile.getY());
+    DrawTexture(txt, pos.x, pos.y - tile.getLevel()*16, WHITE);
+
+    delete[] slope_data;
 }
 
-void Renderer::DrawIsoGrid() {
-    for (int x = -gridWidth; x < gridWidth; x++) {
-        for (int y = -gridHeight; y < gridHeight; y++) {
-            Vector2 p = IsoToScreen(x, y);
-            if (x % 2 == 0 && y % 2 == 0) {
-                p.y -= 16;
-            }
-
-            DrawIsoTile(p, tileSize);
-        }
-
-    }
-}

@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 
-// TODO : Please implement methods, getters, setters, and any additional members you think are necessary for the Tile class
 
 class Tile {
 private:
@@ -22,7 +21,7 @@ public:
     int getX() const;
     int getY() const;
     std::string getTextureId() const;
-    std::vector<int> getSlopeData();
+    std::vector<int> getSlopeData() const;
     int getLevel() const;
 
     void setLevel(int newLevel);
