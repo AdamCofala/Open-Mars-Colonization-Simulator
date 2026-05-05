@@ -61,7 +61,7 @@ void GameCamera::update_zoom(float dt) {
     float wheel = GetMouseWheelMove();
 
     if (wheel != 0) {
-        targetZoom += wheel * zoomSpeed;
+        targetZoom += wheel * zoomSpeed ;
 		targetZoom = std::max(minZoom, std::min(maxZoom, targetZoom));
     }
     Vector2 mouseWorldBefore = GetScreenToWorld2D(GetMousePosition(), camera);

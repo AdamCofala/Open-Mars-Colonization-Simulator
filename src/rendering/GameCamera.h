@@ -15,7 +15,7 @@ private:
 
 public:
     GameCamera() = default;
-    GameCamera(Vector2 startPosition, float startZoom = 1.0f, float moveSpeed = 500.0f, float zoomSpeed = 0.1f);
+    GameCamera(Vector2 startPosition, float startZoom = 1.0f, float moveSpeed = 500.0f, float zoomSpeed = 0.07f);
 
     void init(Vector2 startPosition, float startZoom);
     void update(float dt);
