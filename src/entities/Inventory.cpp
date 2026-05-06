@@ -1,7 +1,6 @@
 #include "Inventory.h"
 
-void Inventory::init(int capacity) {
-    maxCapacity = capacity;
+void Inventory::init() {
     items.clear();
 }
 
@@ -23,18 +22,6 @@ int Inventory::getAmount(MaterialType type) const {
         return it->second;
     }
     return 0;
-}
-
-int Inventory::getMaxCapacity() const {
-    return maxCapacity;
-}
-
-int Inventory::getCurrentLoad() const {
-    int load = 0;
-    for (const auto& pair : items) {
-        load += pair.second;
-    }
-    return load;
 }
 
 void Inventory::clear() {
