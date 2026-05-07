@@ -37,7 +37,6 @@ private:
 	}
 
 
-    
 public:
 
     TextureManager() { init(); }
@@ -46,8 +45,14 @@ public:
         UnloadTextures();
     }
 
-    Texture2D map_slope_to_texture(int data[4]) const{
-        int index = (data[0] << 3) | (data[1] << 2) | (data[2] << 1) | data[3];
-		return TileTextures[index];
+    const Texture2D& map_slope_to_texture(int data[4]) const
+    {
+        int index =
+            (data[0] << 3) |
+            (data[1] << 2) |
+            (data[2] << 1) |
+            data[3];
+
+        return TileTextures[index];
     }
-};
+ };

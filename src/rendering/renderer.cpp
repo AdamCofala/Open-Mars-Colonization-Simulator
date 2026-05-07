@@ -1,20 +1,26 @@
 #include "Renderer.h"
 #include "raylib.h"
 #include "TextureManager.h"
-#include <omp.h>
+#include "world/World.h"
+#include <stdexcept>
 
 void Renderer::init() {
     // Load any textures, shaders, etc. here
+
+	if (camera) throw std::runtime_error("Camera is already initialized!");
+	if (txt_manager) throw std::runtime_error("TextureManager is already initialized!");
+
+    camera = new GameCamera(IsoToScreen(0, 0));
+    txt_manager = new TextureManager();
 }
 
 void Renderer::update(float dt) {
-	camera.update(dt);
+	camera->update(dt);
 }
 
-void Renderer::draw(const Map& map) {
-    BeginMode2D(camera.getCamera());
-
-	RenderTerrain(map);
+void Renderer::draw(const World& world) {
+    BeginMode2D(camera->getCamera());
+	RenderTerrain(world.getMap());
        
     EndMode2D();
 
@@ -24,7 +30,7 @@ void Renderer::draw(const Map& map) {
 void Renderer::RenderTerrain(const Map& map) {
 
 	// Render only tiles that are visible on the screen, based on camera position and zoom
-    Camera2D cam = camera.getCamera();
+    Camera2D cam = camera->getCamera();
     int halfW = map.getWidth() / 2;
     int halfH = map.getHeight() / 2;
 
@@ -83,7 +89,7 @@ Vector2 Renderer::ScreenToIso(Vector2 pos) const {
 
 void Renderer::DrawIsoTile(const Tile& tile, Vector2 pos) const {
     auto slope_vec = tile.getSlopeData();
-    Texture2D& txt = txt_manager.map_slope_to_texture(slope_vec.data());
+    const Texture2D* txt = &txt_manager->map_slope_to_texture(slope_vec.data());
 
     // N vertex tile'a zawsze na pos.y
     // Ka¿da tekstura ma N na swoim top pikselu (y=0)
@@ -92,10 +98,10 @@ void Renderer::DrawIsoTile(const Tile& tile, Vector2 pos) const {
     auto& s = slope_vec;
     int n_raised = s[0]; // czy N róg jest wy¿ej o 1 level
 
-    int drawX = (int)pos.x - txt.width / 2;
+    int drawX = (int)pos.x - txt->width / 2;
     int drawY = (int)pos.y
         - n_raised * HEIGHT_OFFSET          // N wy¿ej = przesuñ w górê
         - tile.getLevel() * HEIGHT_OFFSET;
 
-    DrawTexture(txt, drawX, drawY, WHITE);
+    DrawTexture(*txt, drawX, drawY, WHITE);
 }

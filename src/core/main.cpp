@@ -1,6 +1,6 @@
 #include "rendering/Renderer.h"
-#include "world/Map.h"
 #include "raylib.h"
+#include "world/World.h"
 
 static constexpr unsigned int WINDOW_WIDTH = 1280;
 static constexpr unsigned int WINDOW_HEIGHT = 720;
@@ -9,26 +9,24 @@ static constexpr unsigned int MAP_WIDTH = 128;
 static constexpr unsigned int MAP_HEIGHT = 128;
 
 Renderer* renderer = nullptr;
-Map* map = nullptr;
-
+World* world = nullptr;
 
 void init()
 {
-	// TODO add throw if renderer is already initialized and delete it before reinitializing, also check width and height
+    // TODO add throw if renderer is already initialized and delete it before reinitializing, also check width and height
     // Any global initialization can go here
-	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Open Mars 1.0.0-alpha.1");
-	renderer = new Renderer();
-	renderer->init();
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Open Mars 1.0.0-alpha.1");
+    renderer = new Renderer();
+    renderer->init();
 
-    map = new Map();
-    map->init(MAP_WIDTH, MAP_HEIGHT);
-	map->generateTerrain();
-    
+    world = new World();
+    world->init(MAP_WIDTH, MAP_HEIGHT);
 }
 
 void update(float dt)
 {
     // Any global update logic can go here
+    world->update(dt);
 	renderer->update(dt);
 }
 
@@ -37,8 +35,16 @@ void draw()
     // Any global drawing logic can go here
     BeginDrawing();
     ClearBackground(BLACK);
-    renderer->draw(*map);
+    renderer->draw(*world);
     EndDrawing();
+}
+
+void clean() {
+    renderer->shutdown();
+	delete renderer;
+
+    world->shutdown();
+    delete world;
 }
 
 
@@ -47,14 +53,12 @@ int main() {
 
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
-
 		update(dt);
         draw();
     }
 
-    renderer->shutdown();
-	delete renderer;
     CloseWindow();
+    clean();
 
     return 0;
 }
