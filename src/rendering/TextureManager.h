@@ -6,37 +6,42 @@
 
 class TextureManager
 {
+public:
+    std::array<Rectangle, 16> TileTexturesInfo;
+	Texture2D tile_atlas = LoadTexture(RESOURCES_PATH "tile_atlas.png");
+
 private:
-    std::array<Texture2D, 16> TileTextures;
-
-
     void init() {
 		load_tiles_textures();
     }
 
     void load_tiles_textures() {
-        TileTextures[0b0000] = LoadTexture(RESOURCES_PATH "Tiles/tile_0000.png");
-        TileTextures[0b1000] = LoadTexture(RESOURCES_PATH "Tiles/tile_1000.png");
-        TileTextures[0b0100] = LoadTexture(RESOURCES_PATH "Tiles/tile_0100.png");
-        TileTextures[0b0010] = LoadTexture(RESOURCES_PATH "Tiles/tile_0010.png");
-        TileTextures[0b0001] = LoadTexture(RESOURCES_PATH "Tiles/tile_0001.png");
-        TileTextures[0b1100] = LoadTexture(RESOURCES_PATH "Tiles/tile_1100.png");
-        TileTextures[0b0110] = LoadTexture(RESOURCES_PATH "Tiles/tile_0110.png");
-        TileTextures[0b0011] = LoadTexture(RESOURCES_PATH "Tiles/tile_0011.png");
-        TileTextures[0b1001] = LoadTexture(RESOURCES_PATH "Tiles/tile_1001.png");
-        TileTextures[0b1110] = LoadTexture(RESOURCES_PATH "Tiles/tile_1110.png");
-        TileTextures[0b0111] = LoadTexture(RESOURCES_PATH "Tiles/tile_0111.png");
-        TileTextures[0b1011] = LoadTexture(RESOURCES_PATH "Tiles/tile_1011.png");
-        TileTextures[0b1101] = LoadTexture(RESOURCES_PATH "Tiles/tile_1101.png");
-        TileTextures[0b1010] = LoadTexture(RESOURCES_PATH "Tiles/tile_1010.png");
-		TileTextures[0b0101] = LoadTexture(RESOURCES_PATH "Tiles/tile_0101.png");
-    }
+        TileTexturesInfo = {
+			Rectangle{0,   0, 64, 31}, // 0000
+			Rectangle{65,  0, 64, 31}, // 0001
+			Rectangle{130, 0, 64, 23}, // 0010
+			Rectangle{195, 0, 64, 23}, // 0011
 
+			Rectangle{260, 0, 64, 31}, // 0100
+			Rectangle{325, 0, 64, 31}, // 0101
+			Rectangle{390, 0, 64, 23}, // 0110
+			Rectangle{455, 0, 64, 23}, // 0111
+
+			Rectangle{520, 0, 64, 39}, // 1000
+			Rectangle{585, 0, 64, 39}, // 1001
+			Rectangle{650, 0, 64, 31}, // 1010
+			Rectangle{715, 0, 64, 31}, // 1011
+
+			Rectangle{780, 0, 64, 39}, // 1100
+			Rectangle{845, 0, 64, 39}, // 1101
+			Rectangle{910, 0, 64, 31}, // 1110
+
+			Rectangle{0, 0, 0, 0} // 1111 unused
+        };
+    }
     void UnloadTextures() {
-        for (const auto& texture : TileTextures) {
-            UnloadTexture(texture);
-        }
-	}
+        UnloadTexture(tile_atlas);
+    }
 
 
 public:
@@ -47,7 +52,7 @@ public:
         UnloadTextures();
     }
 
-    const Texture2D& map_slope_to_texture(int data[4]) const
+    const Rectangle& map_slope_to_texture(int data[4]) const
     {
         int index =
             (data[0] << 3) |
@@ -55,6 +60,6 @@ public:
             (data[2] << 1) |
             data[3];
 
-        return TileTextures[index];
+        return TileTexturesInfo[index];
     }
  };

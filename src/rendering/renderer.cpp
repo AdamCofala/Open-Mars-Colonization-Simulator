@@ -89,7 +89,6 @@ Vector2 Renderer::ScreenToIso(Vector2 pos) const {
 
 void Renderer::DrawIsoTile(const Tile& tile, Vector2 pos) const {
     auto slope_vec = tile.getSlopeData();
-    const Texture2D* txt = &txt_manager->map_slope_to_texture(slope_vec.data());
 
     // N vertex tile'a zawsze na pos.y
     // Ka¿da tekstura ma N na swoim top pikselu (y=0)
@@ -98,10 +97,11 @@ void Renderer::DrawIsoTile(const Tile& tile, Vector2 pos) const {
     auto& s = slope_vec;
     int n_raised = s[0]; // czy N róg jest wy¿ej o 1 level
 
-    int drawX = (int)pos.x - txt->width / 2;
+    int drawX = (int)pos.x - txt_manager->map_slope_to_texture(slope_vec.data()).width / 2;
     int drawY = (int)pos.y
         - n_raised * HEIGHT_OFFSET          // N wy¿ej = przesuñ w górê
         - tile.getLevel() * HEIGHT_OFFSET;
+	Vector2 drawPos = { drawX, drawY };
 
-    DrawTexture(*txt, drawX, drawY, WHITE);
+	DrawTextureRec(txt_manager->tile_atlas, txt_manager->map_slope_to_texture(slope_vec.data()), drawPos, WHITE);
 }
