@@ -28,6 +28,8 @@ private:
         TileTextures[0b0111] = LoadTexture(RESOURCES_PATH "Tiles/tile_0111.png");
         TileTextures[0b1011] = LoadTexture(RESOURCES_PATH "Tiles/tile_1011.png");
         TileTextures[0b1101] = LoadTexture(RESOURCES_PATH "Tiles/tile_1101.png");
+        TileTextures[0b1010] = LoadTexture(RESOURCES_PATH "Tiles/tile_1010.png");
+		TileTextures[0b0101] = LoadTexture(RESOURCES_PATH "Tiles/tile_0101.png");
     }
 
     void UnloadTextures() {
