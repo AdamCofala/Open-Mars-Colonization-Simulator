@@ -11,10 +11,35 @@ void World::init(int mapWidth, int mapHeight) {
 	map = new Map();
 	map->init(mapWidth, mapHeight);
 	map->generateTerrain();
+
+	globalInventory.init();
+
+	timeAccumulator = 0.0f;
+	day = 1;
+	month = 1;
+	year = 2050;
 }
 
 void World::update(float dt) {
 	// Update world logic here
+	timeAccumulator += dt;
+
+	while (timeAccumulator >= secondsPerGameDay) {
+		timeAccumulator -= secondsPerGameDay;
+		day++;
+
+		if (day > 30) {
+			day = 1;
+			month++;
+
+			if (month > 12) {
+				month = 1;
+				year++;
+			}
+		}
+
+		
+	}
 }
 
 void World::shutdown() {
