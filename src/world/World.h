@@ -14,8 +14,6 @@ private:
     int month = 1;
     int year = 2050;
 
-    void onDayPassed();
-
 public:
 	void init(int mapWidth = 191, int mapHeight = 191);
 	void update(float dt);

@@ -134,6 +134,11 @@ Tile& Map::getTile(int x, int y) const
     return const_cast<Tile&>(tiles[y * width + x]);
 }
 
+std::vector<Structure>& Map::getStructures()
+{
+    return structures;
+}
+
 int Map::getWidth() const
 {
 	return width;

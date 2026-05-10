@@ -38,6 +38,13 @@ void World::update(float dt) {
 			}
 		}
 
+		if (map != nullptr) {
+			auto& allStructures = map->getStructures();
+
+			for (auto& structure : allStructures) {
+				structure.update(globalInventory);
+			}
+		}
 		
 	}
 }
@@ -52,4 +59,16 @@ void World::shutdown() {
 
 Map& World::getMap() const {
 	return *map;
+}
+
+int World::getDay() const {
+	return day;
+}
+
+int World::getMonth() const {
+	return month;
+}
+
+int World::getYear() const {
+	return year;
 }
