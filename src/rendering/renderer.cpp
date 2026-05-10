@@ -68,6 +68,7 @@ void Renderer::RenderTerrain(const Map& map) {
 }
 
 void Renderer::shutdown() {
+
 }
 
 Vector2 Renderer::IsoToScreen(int x, int y) const {
