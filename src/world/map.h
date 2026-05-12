@@ -4,8 +4,6 @@
 #include "Tile.h"
 #include "entities/Structure.h"
 
-// TODO : Please implement methods, getters, setters, and any additional members you think are necessary for the Map class
-
 class Map {
 private:
     unsigned int width;
@@ -16,8 +14,7 @@ private:
 
 public:
     void init(int w, int h);
-    void generateTerrain(); // This one u can leave on me
-
+    void generateTerrain();
     Tile& getTile(int x, int y) const;
     std::vector<Structure>& getStructures();
 

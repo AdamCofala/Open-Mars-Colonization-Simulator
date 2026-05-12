@@ -34,7 +34,7 @@ void World::update(float dt) {
 
 			if (month > 12) {
 				month = 1;
-				year++;
+				year++erlatka;
 			}
 		}
 
