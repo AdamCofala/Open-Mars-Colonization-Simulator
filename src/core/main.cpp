@@ -1,6 +1,7 @@
 #include "rendering/Renderer.h"
 #include "raylib.h"
 #include "world/World.h"
+#include "player/InputManager.h"
 
 static constexpr unsigned int WINDOW_WIDTH = 1280;
 static constexpr unsigned int WINDOW_HEIGHT = 720;
@@ -10,6 +11,8 @@ static constexpr unsigned int MAP_HEIGHT = 128;
 
 Renderer* renderer = nullptr;
 World* world = nullptr;
+InputManager* input = nullptr;
+
 
 void init()
 {
@@ -21,6 +24,8 @@ void init()
 
     world = new World();
     world->init(MAP_WIDTH, MAP_HEIGHT);
+
+    input = new InputManager();
 }
 
 void update(float dt)
@@ -36,6 +41,7 @@ void draw()
     BeginDrawing();
     ClearBackground(BLACK);
     renderer->draw(*world);
+    input->update(*renderer, world->getMap());
     EndDrawing();
 }
 
@@ -45,6 +51,8 @@ void clean() {
 
     world->shutdown();
     delete world;
+
+	delete input;
 }
 
 

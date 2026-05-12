@@ -67,8 +67,28 @@ void Renderer::RenderTerrain(const Map& map) {
     }
 }
 
-void Renderer::shutdown() {
+void Renderer::RenderHoveredTile(int x, int y)
+{
+        DrawCircle(IsoToScreen(x, y).x, IsoToScreen(x, y).y, 10, RED);
+}
 
+GameCamera& Renderer::getGameCamera() const
+{
+    if (!camera) {
+        throw std::runtime_error("Camera is not initialized!");
+    }
+    return *camera;
+}
+
+void Renderer::shutdown() {
+    if (camera) {
+        delete camera;
+        camera = nullptr;
+    }
+    if (txt_manager) {
+        delete txt_manager;
+        txt_manager = nullptr;
+    }
 }
 
 Vector2 Renderer::IsoToScreen(int x, int y) const {

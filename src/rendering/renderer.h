@@ -10,6 +10,11 @@ public:
     void update(float dt);
     void draw(const World& world);
     void shutdown();
+    void RenderHoveredTile(int x, int y);
+
+	GameCamera& getGameCamera() const;
+    Vector2 IsoToScreen(int x, int y) const;
+    Vector2 ScreenToIso(Vector2 pos) const;
 
 private:
     const int tileSize = 64;
@@ -18,8 +23,6 @@ private:
     GameCamera* camera = nullptr;
 	TextureManager* txt_manager = nullptr;
 
-    Vector2 IsoToScreen(int x, int y) const;
-    Vector2 ScreenToIso(Vector2 pos) const;
     void DrawIsoTile(const Tile& tile, Vector2 pos) const;
 	void RenderTerrain(const Map& map);
 };
