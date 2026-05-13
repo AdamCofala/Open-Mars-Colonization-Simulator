@@ -32,7 +32,6 @@ void init()
 
 void update(float dt) {
     inputManager->update();
-    renderer->setSelectedTile(inputManager->getSelectedTile());   
     world->update(dt);
     renderer->update(dt);
 }
@@ -41,6 +40,7 @@ void draw()
 {
     // Any global drawing logic can go here
     BeginDrawing();
+
     ClearBackground(BLACK);
     renderer->draw(*world);
 

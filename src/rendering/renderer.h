@@ -22,18 +22,19 @@ public:
 
     int getTileSize() const { return tileSize; }
     int getHeightOffset() const { return HEIGHT_OFFSET; }
-    void setSelectedTile(Vector2 tile) { m_selectedTile = tile; }
-
+    void setSelectedTile(Vector2 tile, Vector2 offset = { 1,1 });
     VisibleTileBounds getVisibleTileBounds(int mapWidth, int mapHeight) const;
 
 private:
     const int tileSize = 64;
     const int HEIGHT_OFFSET = 8;
-    Vector2 m_selectedTile = { -1, -1 };
+    Vector2 r_selectedTile = { -1, -1 };
+	Vector2 r_selectedTileOffset = { -1, -1 };
+
     GameCamera* camera = nullptr;
     TextureManager* txt_manager = nullptr;
 
     void DrawIsoTile(const Tile& tile, Vector2 pos, Color tint = WHITE) const;
     void RenderTerrain(const Map& map);
-    void RenderSelected(const Map& map);
+    void RenderSelected(const Map& map, Vector2 offset={1,1}, Color tint = Fade(SKYBLUE, 0.5f));
 };

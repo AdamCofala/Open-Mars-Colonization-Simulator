@@ -1,4 +1,4 @@
-#include "Renderer.h"
+ï»¿#include "Renderer.h"
 #include "raylib.h"
 #include "TextureManager.h"
 #include "world/World.h"
@@ -20,10 +20,16 @@ void Renderer::draw(const World& world) {
     BeginMode2D(camera->getCamera());
 
     RenderTerrain(world.getMap());
-    RenderSelected(world.getMap());
+    RenderSelected(world.getMap(), r_selectedTileOffset);
 
     EndMode2D();
     DrawFPS(10, 40);
+}
+
+void Renderer::setSelectedTile(Vector2 tile, Vector2 offset)
+{
+    r_selectedTile = tile;
+    r_selectedTileOffset = offset;
 }
 
 VisibleTileBounds Renderer::getVisibleTileBounds(int mapWidth, int mapHeight) const {
@@ -48,7 +54,7 @@ VisibleTileBounds Renderer::getVisibleTileBounds(int mapWidth, int mapHeight) co
         maxY = std::max(maxY, (int)ceil(iso.y));
     }
 
-    // Margines ¿eby nie ucinaæ kafelków przy krawêdzi
+    // Margines Å¼eby nie ucinaÄ‡ kafelkÃ³w przy krawÄ™dzi
     minX -= 2; maxX += 2;
     minY -= 2; maxY += 2;
 
@@ -67,6 +73,7 @@ VisibleTileBounds Renderer::getVisibleTileBounds(int mapWidth, int mapHeight) co
     };
 }
 
+
 void Renderer::RenderTerrain(const Map& map) {
     int halfW = map.getWidth() / 2;
     int halfH = map.getHeight() / 2;
@@ -75,19 +82,54 @@ void Renderer::RenderTerrain(const Map& map) {
     for (int y = minY; y < maxY; y++) {
         for (int x = minX; x < maxX; x++) {
             const Tile& tile = map.getTile(x, y);
-            DrawIsoTile(tile, IsoToScreen(x - halfW, y - halfH));
+
+            if (tile.isOccupied()) {
+                DrawIsoTile(tile, IsoToScreen(x - halfW, y - halfH), Fade(RED, 0.5f));
+                continue;
+            }
+
+            Color base = { 245, 225, 200, 255};   
+
+            // Jitter Â±6
+            int noise = ((x * 1619 + y * 31337) ^ (x + y * 7)) & 0xFF;
+            int jitter = (noise % 13) - 6;
+
+            base.r = (unsigned char)std::clamp((int)base.r + jitter, 0, 255);
+            base.g = (unsigned char)std::clamp((int)base.g + jitter, 0, 255);
+            base.b = (unsigned char)std::clamp((int)base.b + jitter, 0, 255);
+            DrawIsoTile(tile, IsoToScreen(x - halfW, y - halfH), base);
         }
     }
 }
 
-void Renderer::RenderSelected(const Map& map) {
-    if (m_selectedTile.x >= 0 && m_selectedTile.y >= 0) {
-        Vector2 isoPos = IsoToScreen(
-            m_selectedTile.x - map.getWidth() / 2,
-            m_selectedTile.y - map.getHeight() / 2
-        );
-        const Tile& tile = map.getTile(m_selectedTile.x, m_selectedTile.y);
-        DrawIsoTile(tile, isoPos, Fade(SKYBLUE, 0.5f));
+void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
+    if (r_selectedTile.x < 0 || r_selectedTile.y < 0) return;
+
+    int startX = (int)r_selectedTile.x;
+    int startY = (int)r_selectedTile.y;
+    int endX = startX + (int)offset.x;
+    int endY = startY + (int)offset.y;
+
+    int minX = std::min(startX, endX);
+    int maxX = std::max(startX, endX);
+    int minY = std::min(startY, endY);
+    int maxY = std::max(startY, endY);
+
+    // Przytnij do granic mapy
+    minX = std::max(minX, 0);
+    minY = std::max(minY, 0);
+    maxX = std::min(maxX, map.getWidth() - 1);
+    maxY = std::min(maxY, map.getHeight() - 1);
+
+    for (int y = minY; y <= maxY; y++) {
+        for (int x = minX; x <= maxX; x++) {
+            Vector2 isoPos = IsoToScreen(
+                x - map.getWidth() / 2,
+                y - map.getHeight() / 2
+            );
+            const Tile& tile = map.getTile(x, y);
+            DrawIsoTile(tile, isoPos, tint);
+        }
     }
 }
 

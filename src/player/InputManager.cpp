@@ -2,7 +2,7 @@
 #include "rendering/Renderer.h"
 #include <algorithm>
 
-void InputManager::init(const Map* map, const Renderer* renderer)
+void InputManager::init(Map* map, Renderer* renderer)
 {
     m_map = map;
     m_renderer = renderer;
@@ -10,6 +10,20 @@ void InputManager::init(const Map* map, const Renderer* renderer)
 
 void InputManager::update()
 {
+    updateTileSelection();
+	m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
+
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && m_selected_valid()) {
+		m_map->getTile(m_selectedTile.x, m_selectedTile.y).setOccupied(true);
+    }
+
+}
+
+bool InputManager::m_selected_valid() {
+    return (m_selectedTile.x != -1 && m_selectedTile.y != -1);
+}
+
+void InputManager::updateTileSelection(){
     if (!m_map || !m_renderer) return;
 
     Vector2 mouseWorld = GetScreenToWorld2D(GetMousePosition(), m_renderer->getGameCamera().getCamera());
@@ -58,6 +72,7 @@ void InputManager::update()
             }
         }
     }
+
 }
 
 Vector2 InputManager::getSelectedTile() const
