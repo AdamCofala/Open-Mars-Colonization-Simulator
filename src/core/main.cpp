@@ -11,7 +11,7 @@ static constexpr unsigned int MAP_HEIGHT = 128;
 
 Renderer* renderer = nullptr;
 World* world = nullptr;
-InputManager* input = nullptr;
+InputManager* inputManager = nullptr;
 
 
 void init()
@@ -25,14 +25,16 @@ void init()
     world = new World();
     world->init(MAP_WIDTH, MAP_HEIGHT);
 
-    input = new InputManager();
+	inputManager = new InputManager();
+    inputManager->init(&world->getMap(), renderer);
+
 }
 
-void update(float dt)
-{
-    // Any global update logic can go here
+void update(float dt) {
+    inputManager->update();
+    renderer->setSelectedTile(inputManager->getSelectedTile());   
     world->update(dt);
-	renderer->update(dt);
+    renderer->update(dt);
 }
 
 void draw()
@@ -41,7 +43,10 @@ void draw()
     BeginDrawing();
     ClearBackground(BLACK);
     renderer->draw(*world);
-    input->update(*renderer, world->getMap());
+
+    Vector2 sel = inputManager->getSelectedTile();
+    DrawText(TextFormat("Selected: %d, %d", (int)sel.x, (int)sel.y), 10, 60, 20, YELLOW);
+
     EndDrawing();
 }
 
@@ -51,8 +56,6 @@ void clean() {
 
     world->shutdown();
     delete world;
-
-	delete input;
 }
 
 

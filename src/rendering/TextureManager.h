@@ -9,6 +9,7 @@ class TextureManager
 public:
     std::array<Rectangle, 16> TileTexturesInfo;
 	Texture2D tile_atlas = LoadTexture(RESOURCES_PATH "tile_atlas.png");
+    Image tile_atlas_image = LoadImage(RESOURCES_PATH "tile_atlas.png");
 
 private:
     void init() {

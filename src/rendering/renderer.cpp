@@ -5,31 +5,27 @@
 #include <stdexcept>
 
 void Renderer::init() {
-    // Load any textures, shaders, etc. here
-
-	if (camera) throw std::runtime_error("Camera is already initialized!");
-	if (txt_manager) throw std::runtime_error("TextureManager is already initialized!");
-
+    if (camera)      throw std::runtime_error("Camera is already initialized!");
+    if (txt_manager) throw std::runtime_error("TextureManager is already initialized!");
     camera = new GameCamera(IsoToScreen(0, 0));
     txt_manager = new TextureManager();
 }
 
 void Renderer::update(float dt) {
-	camera->update(dt);
+    camera->update(dt);
 }
 
 void Renderer::draw(const World& world) {
     BeginMode2D(camera->getCamera());
-	RenderTerrain(world.getMap());
-       
-    EndMode2D();
 
+    RenderTerrain(world.getMap());
+	RenderSelected(world.getMap());
+
+    EndMode2D();
     DrawFPS(10, 40);
 }
 
 void Renderer::RenderTerrain(const Map& map) {
-
-	// Render only tiles that are visible on the screen, based on camera position and zoom
     Camera2D cam = camera->getCamera();
     int halfW = map.getWidth() / 2;
     int halfH = map.getHeight() / 2;
@@ -52,7 +48,6 @@ void Renderer::RenderTerrain(const Map& map) {
 
     minY -= 2; minX -= 2;
     maxY += 2; maxX += 2;
-
     minX = std::max(minX, -halfW);
     maxX = std::min(maxX, halfW);
     minY = std::max(minY, -halfH);
@@ -61,22 +56,24 @@ void Renderer::RenderTerrain(const Map& map) {
     for (int y = minY; y < maxY; y++) {
         for (int x = minX; x < maxX; x++) {
             const Tile& tile = map.getTile(x + halfW, y + halfH);
-            Vector2 pos = IsoToScreen(x, y);
-            DrawIsoTile(tile, pos);
+            DrawIsoTile(tile, IsoToScreen(x, y));
         }
     }
 }
 
-void Renderer::RenderHoveredTile(int x, int y)
-{
-        DrawCircle(IsoToScreen(x, y).x, IsoToScreen(x, y).y, 10, RED);
+void Renderer::RenderSelected(const Map& map) {
+
+    if (m_selectedTile.x >= 0 && m_selectedTile.y >= 0) {
+
+        Vector2 isoPos = IsoToScreen(m_selectedTile.x- map.getWidth() / 2, m_selectedTile.y - map.getHeight() / 2);
+        const Tile& tile = map.getTile(m_selectedTile.x, m_selectedTile.y);
+        DrawIsoTile(tile, isoPos, Fade(SKYBLUE, 0.5f));
+    }
+
 }
 
-GameCamera& Renderer::getGameCamera() const
-{
-    if (!camera) {
-        throw std::runtime_error("Camera is not initialized!");
-    }
+GameCamera& Renderer::getGameCamera() const {
+    if (!camera) throw std::runtime_error("Camera is not initialized!");
     return *camera;
 }
 
@@ -92,37 +89,27 @@ void Renderer::shutdown() {
 }
 
 Vector2 Renderer::IsoToScreen(int x, int y) const {
-    Vector2 out;
-    out.x = (x - y) * (tileSize / 2.0f);
-    out.y = (x + y) * (tileSize / 4.0f);
-    return out;
+    return {
+        (x - y) * (tileSize / 2.0f),
+        (x + y) * (tileSize / 4.0f)
+    };
 }
 
 Vector2 Renderer::ScreenToIso(Vector2 pos) const {
-    float x = pos.x;
-    float y = pos.y;
-
-    float isoX = (x / (tileSize / 2.0f) + y / (tileSize / 4.0f)) / 2.0f;
-    float isoY = (y / (tileSize / 4.0f) - (x / (tileSize / 2.0f))) / 2.0f;
-
+    float isoX = (pos.x / (tileSize / 2.0f) + pos.y / (tileSize / 4.0f)) / 2.0f;
+    float isoY = (pos.y / (tileSize / 4.0f) - pos.x / (tileSize / 2.0f)) / 2.0f;
     return { isoX, isoY };
 }
 
-void Renderer::DrawIsoTile(const Tile& tile, Vector2 pos) const {
+void Renderer::DrawIsoTile(const Tile& tile, Vector2 pos, Color tint) const {
     auto slope_vec = tile.getSlopeData();
+    int n_raised = slope_vec[0];
 
-    // N vertex tile'a zawsze na pos.y
-    // Ka¿da tekstura ma N na swoim top pikselu (y=0)
-    // Ale N vertex w world space zale¿y od slope - ile rogów jest "wysoko"
-    // slope_data[0]=N, ile z N/W/E/S rogów jest wy¿ej
-    auto& s = slope_vec;
-    int n_raised = s[0]; // czy N róg jest wy¿ej o 1 level
-
-    int drawX = (int)pos.x - txt_manager->map_slope_to_texture(slope_vec.data()).width / 2;
-    int drawY = (int)pos.y
-        - n_raised * HEIGHT_OFFSET          // N wy¿ej = przesuñ w górê
+    const Rectangle& rect = txt_manager->map_slope_to_texture(slope_vec.data());
+    float drawX = pos.x - rect.width / 2.0f;
+    float drawY = pos.y
+        - n_raised * HEIGHT_OFFSET
         - tile.getLevel() * HEIGHT_OFFSET;
-	Vector2 drawPos = { drawX, drawY };
 
-	DrawTextureRec(txt_manager->tile_atlas, txt_manager->map_slope_to_texture(slope_vec.data()), drawPos, WHITE);
+    DrawTextureRec(txt_manager->tile_atlas, rect, { drawX, drawY }, tint);
 }
