@@ -3,6 +3,7 @@
 #include "TextureManager.h"
 #include "world/World.h"
 #include <stdexcept>
+#include <algorithm>
 
 void Renderer::init() {
     if (camera)      throw std::runtime_error("Camera is already initialized!");
@@ -19,25 +20,26 @@ void Renderer::draw(const World& world) {
     BeginMode2D(camera->getCamera());
 
     RenderTerrain(world.getMap());
-	RenderSelected(world.getMap());
+    RenderSelected(world.getMap());
 
     EndMode2D();
     DrawFPS(10, 40);
 }
 
-void Renderer::RenderTerrain(const Map& map) {
+VisibleTileBounds Renderer::getVisibleTileBounds(int mapWidth, int mapHeight) const {
     Camera2D cam = camera->getCamera();
-    int halfW = map.getWidth() / 2;
-    int halfH = map.getHeight() / 2;
+    int halfW = mapWidth / 2;
+    int halfH = mapHeight / 2;
 
     Vector2 corners[4] = {
-        GetScreenToWorld2D({0, 0}, cam),
-        GetScreenToWorld2D({(float)GetScreenWidth(), 0}, cam),
-        GetScreenToWorld2D({0, (float)GetScreenHeight()}, cam),
+        GetScreenToWorld2D({0,                      0},                      cam),
+        GetScreenToWorld2D({(float)GetScreenWidth(), 0},                      cam),
+        GetScreenToWorld2D({0,                      (float)GetScreenHeight()}, cam),
         GetScreenToWorld2D({(float)GetScreenWidth(), (float)GetScreenHeight()}, cam)
     };
 
-    int minX = INT_MAX, maxX = INT_MIN, minY = INT_MAX, maxY = INT_MIN;
+    int minX = INT_MAX, maxX = INT_MIN;
+    int minY = INT_MAX, maxY = INT_MIN;
     for (auto& c : corners) {
         Vector2 iso = ScreenToIso(c);
         minX = std::min(minX, (int)floor(iso.x));
@@ -46,30 +48,47 @@ void Renderer::RenderTerrain(const Map& map) {
         maxY = std::max(maxY, (int)ceil(iso.y));
     }
 
-    minY -= 2; minX -= 2;
-    maxY += 2; maxX += 2;
+    // Margines ¿eby nie ucinaæ kafelków przy krawêdzi
+    minX -= 2; maxX += 2;
+    minY -= 2; maxY += 2;
+
+    // Przytnij do obszaru mapy (iso space: [-halfW, halfW])
     minX = std::max(minX, -halfW);
     maxX = std::min(maxX, halfW);
     minY = std::max(minY, -halfH);
     maxY = std::min(maxY, halfH);
 
+    // Przelicz na grid (dodaj half offset)
+    return {
+        minX + halfW,
+        maxX + halfW,
+        minY + halfH,
+        maxY + halfH
+    };
+}
+
+void Renderer::RenderTerrain(const Map& map) {
+    int halfW = map.getWidth() / 2;
+    int halfH = map.getHeight() / 2;
+    auto [minX, maxX, minY, maxY] = getVisibleTileBounds(map.getWidth(), map.getHeight());
+
     for (int y = minY; y < maxY; y++) {
         for (int x = minX; x < maxX; x++) {
-            const Tile& tile = map.getTile(x + halfW, y + halfH);
-            DrawIsoTile(tile, IsoToScreen(x, y));
+            const Tile& tile = map.getTile(x, y);
+            DrawIsoTile(tile, IsoToScreen(x - halfW, y - halfH));
         }
     }
 }
 
 void Renderer::RenderSelected(const Map& map) {
-
     if (m_selectedTile.x >= 0 && m_selectedTile.y >= 0) {
-
-        Vector2 isoPos = IsoToScreen(m_selectedTile.x- map.getWidth() / 2, m_selectedTile.y - map.getHeight() / 2);
+        Vector2 isoPos = IsoToScreen(
+            m_selectedTile.x - map.getWidth() / 2,
+            m_selectedTile.y - map.getHeight() / 2
+        );
         const Tile& tile = map.getTile(m_selectedTile.x, m_selectedTile.y);
         DrawIsoTile(tile, isoPos, Fade(SKYBLUE, 0.5f));
     }
-
 }
 
 GameCamera& Renderer::getGameCamera() const {
