@@ -16,6 +16,7 @@ public:
     void init(int startX, int startY, int slope_data[4]); //Default slop data should be 0000
 
     bool isOccupied() const;
+    bool isFlat() const;
     void setOccupied(bool state);
 
     int getX() const;

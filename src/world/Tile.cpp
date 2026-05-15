@@ -24,6 +24,11 @@ bool Tile::isOccupied() const {
     return occupied;
 }
 
+bool Tile::isFlat() const
+{
+    return std::max({slope_data[0], slope_data[1], slope_data[2], slope_data[3]}) == 0;
+}
+
 void Tile::setOccupied(bool state) {
     occupied = state;
 }

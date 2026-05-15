@@ -115,11 +115,16 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
     int minY = std::min(startY, endY);
     int maxY = std::max(startY, endY);
 
-    // Przytnij do granic mapy
-    minX = std::max(minX, 0);
-    minY = std::max(minY, 0);
-    maxX = std::min(maxX, map.getWidth() - 1);
-    maxY = std::min(maxY, map.getHeight() - 1);
+    auto [visMinX, visMaxX, visMinY, visMaxY] = getVisibleTileBounds(map.getWidth(), map.getHeight());
+
+    // Przytnij do widocznych granic
+    minX = std::max(minX, visMinX);
+    minY = std::max(minY, visMinY);
+    maxX = std::min(maxX, visMaxX - 1);
+    maxY = std::min(maxY, visMaxY - 1);
+
+    std::vector<std::pair<Tile, Vector2>> selectedTiles;
+	bool flat_terrain = true;
 
     for (int y = minY; y <= maxY; y++) {
         for (int x = minX; x <= maxX; x++) {
@@ -128,9 +133,17 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
                 y - map.getHeight() / 2
             );
             const Tile& tile = map.getTile(x, y);
-            DrawIsoTile(tile, isoPos, tint);
+			flat_terrain = flat_terrain && tile.isFlat();
+            selectedTiles.push_back({tile, isoPos});
         }
     }
+    
+	tint = flat_terrain ? Fade(GREEN, 0.5f) : Fade(RED, 0.5f);
+
+    for (const auto& [tile, pos] : selectedTiles) {
+        DrawIsoTile(tile, pos, tint);
+	}
+
 }
 
 GameCamera& Renderer::getGameCamera() const {
