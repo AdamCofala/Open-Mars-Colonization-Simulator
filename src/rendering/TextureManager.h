@@ -3,13 +3,16 @@
 #include "raylib.h"
 #include <string>
 #include <bitset>
+#include <unordered_map>
 
 class TextureManager
 {
 public:
     std::array<Rectangle, 16> TileTexturesInfo;
 	Texture2D tile_atlas = LoadTexture(RESOURCES_PATH "tile_atlas.png");
-    Image tile_atlas_image = LoadImage(RESOURCES_PATH "tile_atlas.png");
+
+    std::unordered_map<std::string, Rectangle> StuctureTexturesInfo;
+    Texture2D structure_atlas = LoadTexture(RESOURCES_PATH "structure_atlas.png");
 
 private:
     void init() {

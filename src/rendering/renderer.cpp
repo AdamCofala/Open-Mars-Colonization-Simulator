@@ -17,13 +17,13 @@ void Renderer::update(float dt) {
 }
 
 void Renderer::draw(const World& world) {
+
     BeginMode2D(camera->getCamera());
 
     RenderTerrain(world.getMap());
     RenderSelected(world.getMap(), r_selectedTileOffset);
 
     EndMode2D();
-    DrawFPS(10, 40);
 }
 
 void Renderer::setSelectedTile(Vector2 tile, Vector2 offset)
@@ -117,6 +117,7 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 
     auto [visMinX, visMaxX, visMinY, visMaxY] = getVisibleTileBounds(map.getWidth(), map.getHeight());
 
+
     // Przytnij do widocznych granic
     minX = std::max(minX, visMinX);
     minY = std::max(minY, visMinY);
@@ -124,21 +125,21 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
     maxY = std::min(maxY, visMaxY - 1);
 
     std::vector<std::pair<Tile, Vector2>> selectedTiles;
-	bool flat_terrain = true;
+
+    bool in_bounds_selection = endX >= 0 && endY >= 0;
+    bool flat_terrain = true;
+
 
     for (int y = minY; y <= maxY; y++) {
         for (int x = minX; x <= maxX; x++) {
-            Vector2 isoPos = IsoToScreen(
-                x - map.getWidth() / 2,
-                y - map.getHeight() / 2
-            );
+            Vector2 isoPos = IsoToScreen(x - map.getWidth() / 2, y - map.getHeight() / 2);
             const Tile& tile = map.getTile(x, y);
 			flat_terrain = flat_terrain && tile.isFlat();
             selectedTiles.push_back({tile, isoPos});
         }
     }
     
-	tint = flat_terrain ? Fade(GREEN, 0.5f) : Fade(RED, 0.5f);
+	tint = in_bounds_selection && flat_terrain ? Fade(GREEN, 0.5f) : Fade(RED, 0.5f);
 
     for (const auto& [tile, pos] : selectedTiles) {
         DrawIsoTile(tile, pos, tint);

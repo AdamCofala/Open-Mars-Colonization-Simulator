@@ -45,7 +45,9 @@ void draw()
     renderer->draw(*world);
 
     Vector2 sel = inputManager->getSelectedTile();
+    DrawFPS(10, 30);
     DrawText(TextFormat("Selected: %d, %d", (int)sel.x, (int)sel.y), 10, 60, 20, YELLOW);
+	DrawText(TextFormat("Day: %d, Month: %d, Year: %d", world->getDay(), world->getMonth(), world->getYear()), 10, 90, 20, ORANGE);
 
     EndDrawing();
 }
