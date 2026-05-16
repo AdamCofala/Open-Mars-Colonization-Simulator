@@ -25,6 +25,6 @@ public:
 	virtual void update(Inventory& globalInventory);
 	virtual std::string getTextureId() const;
 
-	virtual int getX() const; // Why on the hell its virtual
-	virtual int getY() const;
+	int getX() const;
+	int getY() const;
 };
