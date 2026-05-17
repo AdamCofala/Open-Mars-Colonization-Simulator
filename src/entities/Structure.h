@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
-#include "Inventory.h"
+#include <unordered_map>
+#include "Inventory.h"\
+#include "MaterialType.h"
 
 // Stuctures need to output / input ratio, u can't just update global inventory
 // like that, you need to have some internal state that tracks how much resources the
@@ -14,17 +16,20 @@ private:
 	int y;
 	std::string textureId;
 	Inventory internalInventory; // Inventory for the structure to track its own resources, for example how much energy it has produced / consumed, how much water it has produced / consumed, etc.
-	// TODO typ shit like this:
-	/*
-	  std::unordered_map<MATERIAL, int> productionRates; // How much of each resource the structure produces per internal time unit
-	  std::unordered_map<MATERIAL, int> consumeRates;
-	*/
+
+protected:
+	std::unordered_map<MaterialType, int> productionRates; // How much of each resource the structure produces per internal time unit
+	std::unordered_map<MaterialType, int> consumeRates;
 
 public:
+	virtual ~Structure() = default;
+
 	virtual void init(int startX, int startY, const std::string& texId);
-	virtual void update(Inventory& globalInventory);
+	virtual void update();
 	virtual std::string getTextureId() const;
 
 	int getX() const;
 	int getY() const;
+
+	const Inventory& getInternalInventory() const;
 };

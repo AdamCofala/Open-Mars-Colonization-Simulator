@@ -42,7 +42,7 @@ void World::update(float dt) {
 			auto& allStructures = map->getStructures();
 
 			for (auto& structure : allStructures) {
-				structure.update(globalInventory);
+				structure.update();
 			}
 		}
 		

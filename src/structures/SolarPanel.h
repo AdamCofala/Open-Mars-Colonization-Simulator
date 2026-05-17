@@ -3,11 +3,11 @@
 
 class SolarPanel : public Structure {
 public:
-    SolarPanel() = default;
-
-    void update(Inventory& globalInventory) override
-    {
-		globalInventory.addResource(MaterialType::Energy, 1);     
+    SolarPanel() {
+        productionRates[MaterialType::Energy] = 1;
     }
 
+    void update(Inventory& globalInventory) override {
+        Structure::update(globalInventory);
+    }
 };
