@@ -1,13 +1,16 @@
 #pragma once
-#include "Structure.h"
+#include "entities/Structure.h"
+#include "entities/MaterialType.h"
 
 class SolarPanel : public Structure {
 public:
-    SolarPanel() {
-        productionRates[MaterialType::Energy] = 1;
+    SolarPanel(int x, int y) {
+        productionRates[MaterialType::ENERGY] = 1;
+        // Use the init method to set xOffset and yOffset since they are private in Structure
+        init(x, y, "", 3, 3); // Provide default values for x, y, textureId, xOffset, yOffset
     }
 
-    void update(Inventory& globalInventory) override {
-        Structure::update(globalInventory);
+    void update() override {
+        Structure::update();
     }
 };

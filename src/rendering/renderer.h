@@ -29,7 +29,7 @@ private:
     const int tileSize = 64;
     const int HEIGHT_OFFSET = 8;
     Vector2 r_selectedTile = { -1, -1 };
-	Vector2 r_selectedTileOffset = { -1, -1 };
+	Vector2 r_selectedTileOffset = { 1, 1 };
 
     GameCamera* camera = nullptr;
     TextureManager* txt_manager = nullptr;

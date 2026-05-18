@@ -11,25 +11,29 @@
 // or a water pump that consumes energy to produce water.
 
 class Structure {
-private:
-	int x;
-	int y;
-	std::string textureId;
-	Inventory internalInventory; // Inventory for the structure to track its own resources, for example how much energy it has produced / consumed, how much water it has produced / consumed, etc.
-
 protected:
-	std::unordered_map<MaterialType, int> productionRates; // How much of each resource the structure produces per internal time unit
-	std::unordered_map<MaterialType, int> consumeRates;
+    std::unordered_map<MaterialType, int> productionRates; // How much of each resource the structure produces per internal time unit
+    std::unordered_map<MaterialType, int> consumeRates;
+private:
+    int x;
+    int y;
+    std::string textureId;
+    Inventory internalInventory; // Inventory for the structure to track its own resources, for example how much energy it has produced / consumed, how much water it has produced / consumed, etc.
+
+    int xOffset; // How many tiles the structure occupies in x direction
+    int yOffset; // How many tiles the structure occupies in y direction
 
 public:
-	virtual ~Structure() = default;
+    virtual ~Structure() = default;
 
-	virtual void init(int startX, int startY, const std::string& texId);
-	virtual void update();
-	virtual std::string getTextureId() const;
+    virtual void init(int startX, int startY, const std::string& texId, int xOffset, int yOffset);
+    virtual void update();
+    virtual std::string getTextureId() const;
 
-	int getX() const;
-	int getY() const;
+    int getX() const;
+    int getY() const;
+    int getXOffset() const { return xOffset; }
+    int getYOffset() const { return yOffset; }
 
-	const Inventory& getInternalInventory() const;
+    const Inventory& getInternalInventory() const;
 };

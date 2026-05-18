@@ -20,5 +20,7 @@ public:
 
     int getWidth() const;
     int getHeight() const;
+    bool canPlaceStructure(int x, int y, int xOffset, int yOffset) const;
+    void addStructure(const Structure& structure);
 
 };

@@ -13,10 +13,10 @@ public:
 	void updateTileSelection();        // aktualizuje m_selectedTile na podstawie pozycji myszy i 
 
 private:
-    const Map* m_map = nullptr;
+    Map* m_map = nullptr;
     Renderer* m_renderer = nullptr;
     Vector2 m_selectedTile = { -1, -1 };
-    Vector2 m_selectedTileOffset = { -1, -1 };
+    Vector2 m_selectedTileOffset = { 3, 3 };
 
     bool IsPointInConvexPolygon(Vector2 point, const std::vector<Vector2>& poly) const;
     bool m_selected_valid();

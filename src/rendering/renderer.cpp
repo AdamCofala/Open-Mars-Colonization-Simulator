@@ -107,8 +107,8 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 
     int startX = (int)r_selectedTile.x;
     int startY = (int)r_selectedTile.y;
-    int endX = startX + (int)offset.x;
-    int endY = startY + (int)offset.y;
+    int endX = startX - ((int)offset.x - 1);
+    int endY = startY - ((int)offset.y - 1);
 
     int minX = std::min(startX, endX);
     int maxX = std::max(startX, endX);
@@ -124,22 +124,19 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
     maxX = std::min(maxX, visMaxX - 1);
     maxY = std::min(maxY, visMaxY - 1);
 
-    std::vector<std::pair<Tile, Vector2>> selectedTiles;
+	std::vector<std::pair<Tile, Vector2>> selectedTiles;
 
-    bool in_bounds_selection = endX >= 0 && endY >= 0;
-    bool flat_terrain = true;
+	bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y);
 
+	for (int y = minY; y <= maxY; y++) {
+		for (int x = minX; x <= maxX; x++) {
+			Vector2 isoPos = IsoToScreen(x - map.getWidth() / 2, y - map.getHeight() / 2);
+			const Tile& tile = map.getTile(x, y);
+			selectedTiles.push_back({tile, isoPos});
+		}
+	}
 
-    for (int y = minY; y <= maxY; y++) {
-        for (int x = minX; x <= maxX; x++) {
-            Vector2 isoPos = IsoToScreen(x - map.getWidth() / 2, y - map.getHeight() / 2);
-            const Tile& tile = map.getTile(x, y);
-			flat_terrain = flat_terrain && tile.isFlat();
-            selectedTiles.push_back({tile, isoPos});
-        }
-    }
-    
-	tint = in_bounds_selection && flat_terrain ? Fade(GREEN, 0.5f) : Fade(RED, 0.5f);
+	tint = valid_placement ? Fade(GREEN, 0.5f) : Fade(RED, 0.5f);
 
     for (const auto& [tile, pos] : selectedTiles) {
         DrawIsoTile(tile, pos, tint);

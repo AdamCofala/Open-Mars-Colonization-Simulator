@@ -148,3 +148,42 @@ int Map::getHeight() const
 {
 	return height;
 }
+
+bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset) const {
+	for (int dy = 0; dy < yOffset; ++dy) {
+		for (int dx = 0; dx < xOffset; ++dx) {
+			int tileX = x - dx;
+			int tileY = y - dy;
+			if (tileX < 0 || tileX >= width || tileY < 0 || tileY >= height) {
+				return false;
+			}
+			if (!getTile(tileX, tileY).isFlat() || getTile(tileX, tileY).isOccupied()) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+void Map::addStructure(const Structure& structure)
+{
+	int x = structure.getX();
+	int y = structure.getY();
+	int xOffset = structure.getXOffset();
+	int yOffset = structure.getYOffset();
+
+	if (!canPlaceStructure(x, y, xOffset, yOffset)) {
+		throw std::runtime_error("Cannot place structure here.");
+	}
+
+	// Apply occupation now that we know the whole area is valid
+	for (int dy = 0; dy < yOffset; ++dy) {
+		for (int dx = 0; dx < xOffset; ++dx) {
+			int tileX = x - dx;
+			int tileY = y - dy;
+			getTile(tileX, tileY).setOccupied(true);
+		}
+	}
+
+	structures.push_back(structure);
+}

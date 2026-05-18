@@ -1,9 +1,12 @@
 #include "Structure.h"
 
-void Structure::init(int startX, int startY, const std::string& texId) {
-    x = startX;
-    y = startY;
-    textureId = texId;
+void Structure::init(int startX, int startY, const std::string& texId, int xOffset, int yOffset)
+{
+	x = startX;
+	y = startY;
+	textureId = texId;
+	this->xOffset = xOffset;
+	this->yOffset = yOffset;
 }
 
 void Structure::update() {

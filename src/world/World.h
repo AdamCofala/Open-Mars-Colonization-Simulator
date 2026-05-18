@@ -3,6 +3,7 @@
 #include "Map.h"
 #include "../entities/Inventory.h"
 
+
 class World {
 private:
 	Map* map = nullptr;

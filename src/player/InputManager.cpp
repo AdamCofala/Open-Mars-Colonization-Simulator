@@ -1,5 +1,6 @@
 ﻿#include "InputManager.h"
 #include "rendering/Renderer.h"
+#include "structures/SolarPanel.h"
 #include <algorithm>
 
 void InputManager::init(Map* map, Renderer* renderer)
@@ -13,9 +14,9 @@ void InputManager::update()
     updateTileSelection();
 	m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && m_selected_valid()) {
-		m_map->getTile(m_selectedTile.x, m_selectedTile.y).setOccupied(true);
-    }
+	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && m_selected_valid()) {
+		m_map->addStructure(SolarPanel(int(m_selectedTile.x), int(m_selectedTile.y)));
+	}
 
 }
 
