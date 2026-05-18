@@ -90,14 +90,16 @@ void Map::generateTerrain() {
     enforceValidTerrain(vertex, width, height);
 
     auto clampEdges = [&](std::vector<std::vector<int>>& v) {
-        for (int x = 0; x <= width; x++) {
+       for (int x = 0; x <= width; x++) {
             v[0][x] = v[1][x];
             v[height][x] = v[height - 1][x];
-        }
+       }
+
        for (int y = 0; y <= height; y++) {
          v[y][0] = v[y][1];
          v[y][width] = v[y][width - 1];
        }
+
        };
 
     clampEdges(vertex);
