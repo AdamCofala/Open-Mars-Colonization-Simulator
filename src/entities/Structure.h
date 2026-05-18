@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <unordered_map>
-#include "Inventory.h"\
+#include "Inventory.h"
 #include "MaterialType.h"
 
 // Stuctures need to output / input ratio, u can't just update global inventory
