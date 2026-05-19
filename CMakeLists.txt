@@ -73,3 +73,24 @@ find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 endif()
+
+
+# ---------- IMGUI ----------
+
+target_sources(${PROJECT_NAME} PRIVATE
+
+   external/imgui/imgui.cpp
+   external/imgui/imgui_draw.cpp
+   external/imgui/imgui_tables.cpp
+   external/imgui/imgui_widgets.cpp
+   external/imgui/imgui_demo.cpp
+
+   external/rlImGui/rlImGui.cpp
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+
+    external/imgui
+
+    external/rlImGui
+)

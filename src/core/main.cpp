@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "world/World.h"
 #include "player/InputManager.h"
+#include "player/Gui.h"
 
 static constexpr unsigned int WINDOW_WIDTH = 1280;
 static constexpr unsigned int WINDOW_HEIGHT = 720;
@@ -12,6 +13,7 @@ static constexpr unsigned int MAP_HEIGHT = 128;
 Renderer* renderer = nullptr;
 World* world = nullptr;
 InputManager* inputManager = nullptr;
+Gui* gui = nullptr;
 
 
 void init()
@@ -27,6 +29,9 @@ void init()
 
 	inputManager = new InputManager();
     inputManager->init(&world->getMap(), renderer);
+
+	gui = new Gui();
+    gui->init();
 
 }
 
@@ -49,10 +54,15 @@ void draw()
     DrawText(TextFormat("Selected: %d, %d", (int)sel.x, (int)sel.y), 10, 60, 20, YELLOW);
 	DrawText(TextFormat("Day: %d, Month: %d, Year: %d", world->getDay(), world->getMonth(), world->getYear()), 10, 90, 20, ORANGE);
 
+    gui->render();
+
     EndDrawing();
 }
 
 void clean() {
+    gui->shutdown();
+    delete gui;
+
     renderer->shutdown();
 	delete renderer;
 
