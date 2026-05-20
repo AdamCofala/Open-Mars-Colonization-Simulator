@@ -1,22 +1,41 @@
 ﻿#include "InputManager.h"
+#include "InputManager.h"
 #include "rendering/Renderer.h"
 #include "structures/SolarPanel.h"
+#include "player/Gui.h"
+#include "imgui.h"
 #include <algorithm>
 
-void InputManager::init(Map* map, Renderer* renderer)
+void InputManager::init(Map* map, Renderer* renderer, const Gui* gui)
 {
     m_map = map;
     m_renderer = renderer;
+    m_gui = gui;
 }
 
 void InputManager::update()
 {
     updateTileSelection();
-	m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
 
-	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && m_selected_valid()) {
-		m_map->addStructure(SolarPanel(int(m_selectedTile.x), int(m_selectedTile.y)));
-	}
+    Gui::SelectedTool tool = m_gui ? m_gui->getSelectedTool() : Gui::SelectedTool::Select;
+    int selectedBuilding = m_gui ? m_gui->getSelectedBuilding() : -1;
+
+    if (tool == Gui::SelectedTool::Build && selectedBuilding == 0) {
+        SolarPanel panel(0, 0);
+        m_selectedTileOffset = { (float)panel.getXOffset(), (float)panel.getYOffset() };
+        m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
+    } else {
+        m_selectedTileOffset = { 1, 1 };
+        m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
+    }
+
+    bool canInteractWithGame = !ImGui::GetIO().WantCaptureMouse;
+
+    if (canInteractWithGame && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && m_selected_valid()) {
+        if (tool == Gui::SelectedTool::Build && selectedBuilding == 0) {
+            m_map->addStructure(SolarPanel(int(m_selectedTile.x), int(m_selectedTile.y)));
+        }
+    }
 
 }
 

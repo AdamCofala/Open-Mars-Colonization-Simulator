@@ -27,17 +27,18 @@ void init()
     world = new World();
     world->init(MAP_WIDTH, MAP_HEIGHT);
 
-	inputManager = new InputManager();
-    inputManager->init(&world->getMap(), renderer);
+  gui = new Gui();
+    gui->init(world);
 
-	gui = new Gui();
-    gui->init();
+    inputManager = new InputManager();
+    inputManager->init(&world->getMap(), renderer, gui);
 
 }
 
 void update(float dt) {
     inputManager->update();
-    world->update(dt);
+    float speed = gui ? gui->getGameSpeed() : 1.0f;
+    world->update(dt * speed);
     renderer->update(dt);
 }
 

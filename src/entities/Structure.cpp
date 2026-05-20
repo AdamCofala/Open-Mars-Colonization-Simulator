@@ -7,28 +7,37 @@ void Structure::init(int startX, int startY, const std::string& texId, int xOffs
 	textureId = texId;
 	this->xOffset = xOffset;
 	this->yOffset = yOffset;
+   internalInventory.init();
 }
 
-void Structure::update() {
-    // sprawdzenie czy budynek mo¿e produkowaæ
+void Structure::setInternalCapacity(MaterialType type, float capacity) {
+    internalInventory.setMaxCapacity(type, capacity);
+}
+
+void Structure::update(float dt) {
     bool canOperate = true;
-    for (const auto& [material, amountNeeded] : consumeRates) {
-        if (internalInventory.getAmount(material) < amountNeeded) {
+
+    for (const auto& [material, rate] : consumeRates) {
+        float needed = rate * dt;
+        if (needed > 0.0f && !internalInventory.hasResource(material, needed)) {
             canOperate = false;
             break;
         }
     }
 
-    // je¿eli mo¿e to wykonaæ
     if (canOperate) {
-        // Konsumpcja
-        for (const auto& [material, amountNeeded] : consumeRates) {
-            internalInventory.subResource(material, amountNeeded);
+        for (const auto& [material, rate] : consumeRates) {
+            float needed = rate * dt;
+            if (needed > 0.0f) {
+                internalInventory.subResource(material, needed);
+            }
         }
 
-        // Produkcja
-        for (const auto& [material, amountProduced] : productionRates) {
-            internalInventory.addResource(material, amountProduced);
+        for (const auto& [material, rate] : productionRates) {
+            float produced = rate * dt;
+            if (produced > 0.0f) {
+                internalInventory.addResource(material, produced);
+            }
         }
     }
 }

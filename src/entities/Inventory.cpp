@@ -5,31 +5,31 @@ void Inventory::init() {
     maxCapacities.clear();
 }
 
-void Inventory::setMaxCapacity(MaterialType type, int capacity) {
+void Inventory::setMaxCapacity(MaterialType type, float capacity) {
     maxCapacities[type] = capacity;
     if (items.find(type) == items.end()) {
-        items[type] = 0;
+        items[type] = 0.0f;
     }
 }
 
-int Inventory::getMaxCapacity(MaterialType type) const {
+float Inventory::getMaxCapacity(MaterialType type) const {
     auto it = maxCapacities.find(type);
     if (it != maxCapacities.end()) {
         return it->second;
     }
-    return 0;
+    return 0.0f;
 }
 
-bool Inventory::addResource(MaterialType type, int amount) {
-    if (amount < 0) {
+bool Inventory::addResource(MaterialType type, float amount) {
+    if (amount < 0.0f) {
         items[type] += amount;
         return true;
     }
 
-    int current = getAmount(type);
-    int max = getMaxCapacity(type);
+    float current = getAmount(type);
+    float max = getMaxCapacity(type);
 
-    if (current + amount > max) {
+    if (max > 0.0f && current + amount > max) {
         return false;
     }
 
@@ -37,8 +37,8 @@ bool Inventory::addResource(MaterialType type, int amount) {
     return true;
 }
 
-bool Inventory::subResource(MaterialType type, int amount) {
-    if (amount <= 0) return false;
+bool Inventory::subResource(MaterialType type, float amount) {
+    if (amount <= 0.0f) return false;
 
     if (!hasResource(type, amount)) {
         return false;
@@ -47,7 +47,7 @@ bool Inventory::subResource(MaterialType type, int amount) {
     return addResource(type, -amount);
 }
 
-bool Inventory::hasResource(MaterialType type, int amount) const {
+bool Inventory::hasResource(MaterialType type, float amount) const {
     auto it = items.find(type);
     if (it != items.end()) {
         return it->second >= amount;
@@ -55,12 +55,12 @@ bool Inventory::hasResource(MaterialType type, int amount) const {
     return false;
 }
 
-int Inventory::getAmount(MaterialType type) const {
+float Inventory::getAmount(MaterialType type) const {
     auto it = items.find(type);
     if (it != items.end()) {
         return it->second;
     }
-    return 0;
+    return 0.0f;
 }
 
 void Inventory::clear() {

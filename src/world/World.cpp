@@ -24,7 +24,7 @@ void World::update(float dt) {
 	// Update world logic here
 	timeAccumulator += dt;
 
-	while (timeAccumulator >= secondsPerGameDay) {
+  while (timeAccumulator >= secondsPerGameDay) {
 		timeAccumulator -= secondsPerGameDay;
 		day++;
 
@@ -37,15 +37,18 @@ void World::update(float dt) {
 				year++;
 			}
 		}
+	}
 
-		if (map != nullptr) {
-			auto& allStructures = map->getStructures();
+	if (map != nullptr) {
+		auto& allStructures = map->getStructures();
+		totalEnergy = 0.0f;
+		totalEnergyCapacity = 0.0f;
 
-			for (auto& structure : allStructures) {
-				structure.update();
-			}
+		for (auto& structure : allStructures) {
+			structure.update(dt);
+           totalEnergy += structure.getInternalInventory().getAmount(MaterialType::ENERGY);
+			totalEnergyCapacity += structure.getInternalInventory().getMaxCapacity(MaterialType::ENERGY);
 		}
-		
 	}
 }
 

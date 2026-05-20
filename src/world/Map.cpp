@@ -175,7 +175,7 @@ void Map::addStructure(const Structure& structure)
 	int yOffset = structure.getYOffset();
 
 	if (!canPlaceStructure(x, y, xOffset, yOffset)) {
-		throw std::runtime_error("Cannot place structure here.");
+       return;
 	}
 
 	// Apply occupation now that we know the whole area is valid

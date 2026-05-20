@@ -14,6 +14,7 @@ class Structure {
 protected:
     std::unordered_map<MaterialType, int> productionRates; // How much of each resource the structure produces per internal time unit
     std::unordered_map<MaterialType, int> consumeRates;
+    void setInternalCapacity(MaterialType type, float capacity);
 private:
     int x;
     int y;
@@ -27,7 +28,7 @@ public:
     virtual ~Structure() = default;
 
     virtual void init(int startX, int startY, const std::string& texId, int xOffset, int yOffset);
-    virtual void update();
+    virtual void update(float dt);
     virtual std::string getTextureId() const;
 
     int getX() const;

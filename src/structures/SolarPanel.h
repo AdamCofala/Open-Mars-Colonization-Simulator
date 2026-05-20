@@ -8,9 +8,10 @@ public:
         productionRates[MaterialType::ENERGY] = 1;
         // Use the init method to set xOffset and yOffset since they are private in Structure
         init(x, y, "", 3, 3); // Provide default values for x, y, textureId, xOffset, yOffset
+        setInternalCapacity(MaterialType::ENERGY, 500.0f);
     }
 
-    void update() override {
-        Structure::update();
+    void update(float dt) override {
+        Structure::update(dt);
     }
 };
