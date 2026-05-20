@@ -126,7 +126,7 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 
 	std::vector<std::pair<Tile, Vector2>> selectedTiles;
 
- bool isSelectionOnly = (offset.x == 1 && offset.y == 1);
+	bool isSelectionOnly = (offset.x == 1 && offset.y == 1);
     bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y);
 
 	for (int y = minY; y <= maxY; y++) {
@@ -137,8 +137,8 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 		}
 	}
 
-   if (isSelectionOnly) {
-        tint = Fade(WHITE, 0.9f);
+    if (isSelectionOnly) {
+        tint = Fade(BLACK, 0.2f);
     } else {
         tint = valid_placement ? Fade(GREEN, 0.5f) : Fade(RED, 0.5f);
     }

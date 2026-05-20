@@ -12,38 +12,69 @@ namespace {
 void Gui::init(World* world)
 {
 	m_world = world;
- rlImGuiBeginInitImGui();
+	rlImGuiBeginInitImGui();
 	ImGuiIO& io = ImGui::GetIO();
-	io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/CascadiaCode.ttf", 16.0f);
+
+	// Prefer a sci-fi/monospace coding font; fall back gracefully.
+	ImFont* font = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/CascadiaCode.ttf", 17.0f);
+	if (!font) font = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/consola.ttf", 17.0f);
+	if (!font) io.Fonts->AddFontDefault();
+
+	io.FontGlobalScale = 1.0f;
 	rlImGuiEndInitImGui();
 
-	ImGuiStyle& style = ImGui::GetStyle();
 	ImGui::StyleColorsDark();
-    style.WindowRounding = 1.0f;
-	style.FrameRounding = 1.0f;
-	style.GrabRounding = 1.0f;
-	style.ScrollbarRounding = 1.0f;
-	style.FramePadding = ImVec2(10.0f, 6.0f);
-	style.ItemSpacing = ImVec2(8.0f, 8.0f);
+	ImGuiStyle& style = ImGui::GetStyle();
 
-	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.05f, 0.08f, 0.12f, 0.95f);
-	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.04f, 0.07f, 0.12f, 1.0f);
-	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.06f, 0.12f, 0.2f, 1.0f);
-	style.Colors[ImGuiCol_FrameBg] = ImVec4(0.08f, 0.14f, 0.2f, 1.0f);
-	style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.12f, 0.2f, 0.3f, 1.0f);
-	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.16f, 0.26f, 0.38f, 1.0f);
-   style.Colors[ImGuiCol_Button] = ImVec4(0.08f, 0.18f, 0.32f, 1.0f);
-	style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.12f, 0.3f, 0.48f, 1.0f);
-	style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.16f, 0.38f, 0.6f, 1.0f);
-	style.Colors[ImGuiCol_Header] = ImVec4(0.12f, 0.22f, 0.34f, 1.0f);
-	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.18f, 0.32f, 0.46f, 1.0f);
-	style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.22f, 0.38f, 0.54f, 1.0f);
-  style.Colors[ImGuiCol_Border] = ImVec4(1.0f, 1.0f, 1.0f, 0.0f);
-	style.WindowBorderSize = 0.0f;
-	style.FrameBorderSize = 0.0f;
-	style.Colors[ImGuiCol_Separator] = ImVec4(0.1f, 0.55f, 0.9f, 1.0f);
-	style.Colors[ImGuiCol_Text] = ImVec4(0.8f, 0.9f, 1.0f, 1.0f);
-	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.2f, 0.45f, 0.7f, 0.6f);
+	// Slightly more "HUD"-like, sci-fi look.
+	style.WindowRounding = 6.0f;
+	style.FrameRounding = 5.0f;
+	style.GrabRounding = 6.0f;
+	style.ScrollbarRounding = 8.0f;
+	style.WindowPadding = ImVec2(12.0f, 10.0f);
+	style.FramePadding = ImVec2(10.0f, 7.0f);
+	style.ItemSpacing = ImVec2(10.0f, 9.0f);
+	style.WindowBorderSize = 1.0f;
+	style.FrameBorderSize = 1.0f;
+	style.PopupBorderSize = 1.0f;
+	style.TabBorderSize = 1.0f;
+
+	// Dark glass background + neon cyan accents.
+	style.Colors[ImGuiCol_Text] = ImVec4(0.86f, 0.92f, 1.0f, 1.0f);
+	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.55f, 0.62f, 0.72f, 1.0f);
+	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.03f, 0.05f, 0.08f, 0.88f);
+	style.Colors[ImGuiCol_PopupBg] = ImVec4(0.03f, 0.05f, 0.08f, 0.95f);
+	style.Colors[ImGuiCol_Border] = ImVec4(0.10f, 0.70f, 0.95f, 0.35f);
+	style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+
+	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.02f, 0.05f, 0.09f, 1.0f);
+	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.03f, 0.10f, 0.16f, 1.0f);
+	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.02f, 0.05f, 0.09f, 0.95f);
+
+	style.Colors[ImGuiCol_FrameBg] = ImVec4(0.07f, 0.11f, 0.16f, 1.0f);
+	style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.10f, 0.18f, 0.26f, 1.0f);
+	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.12f, 0.22f, 0.32f, 1.0f);
+
+	style.Colors[ImGuiCol_Button] = ImVec4(0.07f, 0.14f, 0.22f, 1.0f);
+	style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.10f, 0.32f, 0.44f, 1.0f);
+	style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.12f, 0.40f, 0.55f, 1.0f);
+
+	style.Colors[ImGuiCol_Header] = ImVec4(0.08f, 0.18f, 0.28f, 1.0f);
+	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.10f, 0.30f, 0.44f, 1.0f);
+	style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.12f, 0.38f, 0.55f, 1.0f);
+
+	style.Colors[ImGuiCol_Separator] = ImVec4(0.10f, 0.70f, 0.95f, 0.60f);
+	style.Colors[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.70f, 0.95f, 0.85f);
+	style.Colors[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.70f, 0.95f, 1.00f);
+	style.Colors[ImGuiCol_CheckMark] = ImVec4(0.10f, 0.70f, 0.95f, 1.0f);
+	style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.10f, 0.70f, 0.95f, 0.85f);
+	style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.10f, 0.78f, 1.0f, 1.0f);
+	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.10f, 0.22f, 0.32f, 1.0f);
+	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.10f, 0.32f, 0.44f, 1.0f);
+	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.12f, 0.40f, 0.55f, 1.0f);
+
+	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.10f, 0.70f, 0.95f, 0.25f);
+	style.Colors[ImGuiCol_NavHighlight] = ImVec4(0.10f, 0.70f, 0.95f, 0.60f);
 }
 
 void Gui::render()
@@ -85,7 +116,7 @@ void Gui::render()
 		ImGui::EndMainMenuBar();
 	}
 
- ImGui::SetNextWindowPos(ImVec2(screenWidth - 20.0f, 30.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+ ImGui::SetNextWindowPos(ImVec2(screenWidth - 20.0f, 40.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
 	ImGui::Begin("Build Menu", nullptr,
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 

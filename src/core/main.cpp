@@ -18,7 +18,6 @@ Gui* gui = nullptr;
 
 void init()
 {
-    // TODO add throw if renderer is already initialized and delete it before reinitializing, also check width and height
     // Any global initialization can go here
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Open Mars 1.0.0-alpha.1");
     renderer = new Renderer();
@@ -27,7 +26,7 @@ void init()
     world = new World();
     world->init(MAP_WIDTH, MAP_HEIGHT);
 
-  gui = new Gui();
+	gui = new Gui();
     gui->init(world);
 
     inputManager = new InputManager();
@@ -52,8 +51,6 @@ void draw()
 
     Vector2 sel = inputManager->getSelectedTile();
     DrawFPS(10, 30);
-    DrawText(TextFormat("Selected: %d, %d", (int)sel.x, (int)sel.y), 10, 60, 20, YELLOW);
-	DrawText(TextFormat("Day: %d, Month: %d, Year: %d", world->getDay(), world->getMonth(), world->getYear()), 10, 90, 20, ORANGE);
 
     gui->render();
 
