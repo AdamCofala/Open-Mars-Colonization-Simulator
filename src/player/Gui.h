@@ -20,6 +20,7 @@ public:
 	void shutdown() { rlImGuiShutdown(); }
 
 	SelectedTool getSelectedTool() const { return m_selectedTool; }
+	void setSelectedTool(SelectedTool tool) { m_selectedTool = tool; }
 	int getSelectedBuilding() const { return m_selectedBuilding; }
 	float getGameSpeed() const { return m_gameSpeed; }
 

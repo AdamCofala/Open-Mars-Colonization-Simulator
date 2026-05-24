@@ -17,6 +17,7 @@ public:
     void generateTerrain();
     Tile& getTile(int x, int y) const;
     std::vector<Structure>& getStructures();
+    const std::vector<Structure>& getStructures() const;
 
     int getWidth() const;
     int getHeight() const;

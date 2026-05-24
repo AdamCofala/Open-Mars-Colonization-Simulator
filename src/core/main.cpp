@@ -20,6 +20,7 @@ void init()
 {
     // Any global initialization can go here
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Open Mars 1.0.0-alpha.1");
+    HideCursor();
     renderer = new Renderer();
     renderer->init();
 
@@ -44,6 +45,8 @@ void update(float dt) {
 void draw()
 {
     // Any global drawing logic can go here
+ 
+   
     BeginDrawing();
 
     ClearBackground(BLACK);
@@ -53,6 +56,7 @@ void draw()
     DrawFPS(10, 30);
 
     gui->render();
+    renderer->drawCursor();
 
     EndDrawing();
 }

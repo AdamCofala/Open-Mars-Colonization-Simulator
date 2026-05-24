@@ -141,6 +141,11 @@ std::vector<Structure>& Map::getStructures()
     return structures;
 }
 
+const std::vector<Structure>& Map::getStructures() const
+{
+    return structures;
+}
+
 int Map::getWidth() const
 {
 	return width;

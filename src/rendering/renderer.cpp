@@ -10,6 +10,7 @@ void Renderer::init() {
     if (txt_manager) throw std::runtime_error("TextureManager is already initialized!");
     camera = new GameCamera(IsoToScreen(0, 0));
     txt_manager = new TextureManager();
+	HideCursor();
 }
 
 void Renderer::update(float dt) {
@@ -21,6 +22,7 @@ void Renderer::draw(const World& world) {
     BeginMode2D(camera->getCamera());
 
     RenderTerrain(world.getMap());
+    RenderStructures(world.getMap());
     RenderSelected(world.getMap(), r_selectedTileOffset);
 
     EndMode2D();
@@ -102,6 +104,36 @@ void Renderer::RenderTerrain(const Map& map) {
     }
 }
 
+void Renderer::RenderStructures(const Map& map) {
+    int halfW = map.getWidth() / 2;
+    int halfH = map.getHeight() / 2;
+
+    auto structures = map.getStructures();
+    
+    // Painter's algorithm: sort items by isometric depth (y + x)
+    std::sort(structures.begin(), structures.end(), [](const Structure& a, const Structure& b) {
+        return (a.getX() + a.getY()) < (b.getX() + b.getY());
+    });
+
+    for (const auto& s : structures) {
+        //if (s.getTextureId() == "solar_panels") {
+            Vector2 pos = IsoToScreen(s.getX() - halfW, s.getY() - halfH);
+            
+            const Tile& baseTile = map.getTile(s.getX(), s.getY());
+            int n_raised = baseTile.getSlopeData()[0];
+            
+            // For a flat tile, n_raised is 0. Its bottom point (south vertex) is at +31 relative to its drawn Y.
+            float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
+            
+            // Center the structure image horizontally, and set its bottom at tileBottomY
+            float drawX = pos.x - txt_manager->solar_panels.width / 2.0f;
+            float drawY = tileBottomY - txt_manager->solar_panels.height + 1.0f; // +1 if to overlap perfectly
+            
+            DrawTexture(txt_manager->solar_panels, (int)drawX, (int)drawY, WHITE);
+        //}
+    }
+}
+
 void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
     if (r_selectedTile.x < 0 || r_selectedTile.y < 0) return;
 
@@ -129,23 +161,19 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 	bool isSelectionOnly = (offset.x == 1 && offset.y == 1);
     bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y);
 
-	for (int y = minY; y <= maxY; y++) {
-		for (int x = minX; x <= maxX; x++) {
-			Vector2 isoPos = IsoToScreen(x - map.getWidth() / 2, y - map.getHeight() / 2);
-			const Tile& tile = map.getTile(x, y);
-			selectedTiles.push_back({tile, isoPos});
-		}
-	}
-
-    if (isSelectionOnly) {
-        tint = Fade(BLACK, 0.2f);
-    } else {
-        tint = valid_placement ? Fade(GREEN, 0.5f) : Fade(RED, 0.5f);
+    if (!isSelectionOnly) {
+        Vector2 pos = IsoToScreen(startX - map.getWidth() / 2, startY - map.getHeight() / 2);
+        const Tile& baseTile = map.getTile(startX, startY);
+        int n_raised = baseTile.getSlopeData()[0];
+        
+        float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
+        
+        float drawX = pos.x - txt_manager->solar_panels.width / 2.0f;
+        float drawY = tileBottomY - txt_manager->solar_panels.height + 1.0f;
+        
+        Color structureTint = valid_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
+        DrawTexture(txt_manager->solar_panels, (int)drawX, (int)drawY, structureTint);
     }
-
-    for (const auto& [tile, pos] : selectedTiles) {
-        DrawIsoTile(tile, pos, tint);
-	}
 
 }
 
@@ -189,4 +217,13 @@ void Renderer::DrawIsoTile(const Tile& tile, Vector2 pos, Color tint) const {
         - tile.getLevel() * HEIGHT_OFFSET;
 
     DrawTextureRec(txt_manager->tile_atlas, rect, { drawX, drawY }, tint);
+}
+
+void Renderer::drawCursor() const {
+    if (txt_manager && txt_manager->cursor.id != 0) {
+        if (IsCursorOnScreen()) {
+            Vector2 mousePos = GetMousePosition();
+            DrawTexture(txt_manager->cursor, (int)mousePos.x, (int)mousePos.y, WHITE);
+        }
+    }
 }

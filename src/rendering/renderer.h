@@ -20,6 +20,8 @@ public:
     Vector2 IsoToScreen(int x, int y) const;
     Vector2 ScreenToIso(Vector2 pos) const;
 
+    void drawCursor() const;
+
     int getTileSize() const { return tileSize; }
     int getHeightOffset() const { return HEIGHT_OFFSET; }
     void setSelectedTile(Vector2 tile, Vector2 offset = { 1,1 });
@@ -36,5 +38,6 @@ private:
 
     void DrawIsoTile(const Tile& tile, Vector2 pos, Color tint = WHITE) const;
     void RenderTerrain(const Map& map);
+    void RenderStructures(const Map& map);
     void RenderSelected(const Map& map, Vector2 offset={1,1}, Color tint = Fade(SKYBLUE, 0.5f));
 };

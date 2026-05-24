@@ -13,6 +13,8 @@ public:
 
     std::unordered_map<std::string, Rectangle> StuctureTexturesInfo;
     Texture2D structure_atlas = LoadTexture(RESOURCES_PATH "structure_atlas.png");
+    Texture2D solar_panels = LoadTexture(RESOURCES_PATH "solar_panels.png");
+    Texture2D cursor = LoadTexture(RESOURCES_PATH "cursor.png");
 
 private:
     void init() {
@@ -45,6 +47,9 @@ private:
     }
     void UnloadTextures() {
         UnloadTexture(tile_atlas);
+        UnloadTexture(structure_atlas);
+        UnloadTexture(solar_panels);
+        UnloadTexture(cursor);
     }
 
 

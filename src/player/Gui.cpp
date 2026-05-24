@@ -14,6 +14,7 @@ void Gui::init(World* world)
 	m_world = world;
 	rlImGuiBeginInitImGui();
 	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 
 	// Prefer a sci-fi/monospace coding font; fall back gracefully.
 	ImFont* font = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/CascadiaCode.ttf", 17.0f);

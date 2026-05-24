@@ -6,7 +6,7 @@
 #include "imgui.h"
 #include <algorithm>
 
-void InputManager::init(Map* map, Renderer* renderer, const Gui* gui)
+void InputManager::init(Map* map, Renderer* renderer, Gui* gui)
 {
     m_map = map;
     m_renderer = renderer;
@@ -15,16 +15,22 @@ void InputManager::init(Map* map, Renderer* renderer, const Gui* gui)
 
 void InputManager::update()
 {
-    updateTileSelection();
-
     Gui::SelectedTool tool = m_gui ? m_gui->getSelectedTool() : Gui::SelectedTool::Select;
     int selectedBuilding = m_gui ? m_gui->getSelectedBuilding() : -1;
+
+    if (tool == Gui::SelectedTool::Select) {
+        m_selectedTile = { -1, -1 };
+        m_selectedTileOffset = { 1, 1 };
+        m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
+    } else {
+        updateTileSelection();
+    }
 
     if (tool == Gui::SelectedTool::Build && selectedBuilding == 0) {
         SolarPanel panel(0, 0);
         m_selectedTileOffset = { (float)panel.getXOffset(), (float)panel.getYOffset() };
         m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
-    } else {
+    } else if (tool != Gui::SelectedTool::Select) {
         m_selectedTileOffset = { 1, 1 };
         m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
     }
@@ -33,7 +39,17 @@ void InputManager::update()
 
     if (canInteractWithGame && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && m_selected_valid()) {
         if (tool == Gui::SelectedTool::Build && selectedBuilding == 0) {
-            m_map->addStructure(SolarPanel(int(m_selectedTile.x), int(m_selectedTile.y)));
+            bool placement_success = m_map->canPlaceStructure((int)m_selectedTile.x, (int)m_selectedTile.y, (int)m_selectedTileOffset.x, (int)m_selectedTileOffset.y);
+            if (placement_success) {
+                m_map->addStructure(SolarPanel(int(m_selectedTile.x), int(m_selectedTile.y)));
+                if (m_gui) {
+                    m_gui->setSelectedTool(Gui::SelectedTool::Select);
+                }
+                
+                m_selectedTile = { -1, -1 };
+                m_selectedTileOffset = { 1, 1 };
+                m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
+            }
         }
     }
 

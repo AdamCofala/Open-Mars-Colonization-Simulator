@@ -48,13 +48,9 @@ void GameCamera::update_movement(float dt) {
 
     // Openttd RMB Logic
     if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
-		HideCursor();
         camera.target.x -= mouseDelta.x / camera.zoom;
         camera.target.y -= mouseDelta.y / camera.zoom;
-	}
-	else { 
-        ShowCursor();
-	}
+    }
 }
 
 void GameCamera::update_zoom(float dt) {

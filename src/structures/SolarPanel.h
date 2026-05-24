@@ -3,6 +3,7 @@
 #include "entities/MaterialType.h"
 
 class SolarPanel : public Structure {
+	std::string textureId = "solar_panels";
 public:
     SolarPanel(int x, int y) {
         productionRates[MaterialType::ENERGY] = 1;
