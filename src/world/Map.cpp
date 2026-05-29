@@ -156,6 +156,16 @@ int Map::getHeight() const
 	return height;
 }
 
+int Map::getHalfWidth() const
+{
+	return width / 2;
+}
+
+int Map::getHalfHeight() const
+{
+	return height / 2;
+}
+
 bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset) const {
 	for (int dy = 0; dy < yOffset; ++dy) {
 		for (int dx = 0; dx < xOffset; ++dx) {

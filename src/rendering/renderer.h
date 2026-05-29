@@ -17,15 +17,15 @@ public:
     void shutdown();
 
     GameCamera& getGameCamera() const;
-    Vector2 IsoToScreen(int x, int y) const;
-    Vector2 ScreenToIso(Vector2 pos) const;
+    Vector2 IsoToScreen(float x, float y, const Map* map = nullptr) const;
+    Vector2 ScreenToIso(Vector2 pos, const Map* map = nullptr) const;
 
     void drawCursor() const;
 
     int getTileSize() const { return tileSize; }
     int getHeightOffset() const { return HEIGHT_OFFSET; }
     void setSelectedTile(Vector2 tile, Vector2 offset = { 1,1 });
-    VisibleTileBounds getVisibleTileBounds(int mapWidth, int mapHeight) const;
+    VisibleTileBounds getVisibleTileBounds(const Map& map) const;
 
 private:
     const int tileSize = 64;

@@ -21,6 +21,8 @@ public:
 
     int getWidth() const;
     int getHeight() const;
+    int getHalfWidth() const;
+    int getHalfHeight() const;
     bool canPlaceStructure(int x, int y, int xOffset, int yOffset) const;
     void addStructure(const Structure& structure);
 

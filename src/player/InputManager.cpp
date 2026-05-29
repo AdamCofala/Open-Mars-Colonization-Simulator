@@ -68,11 +68,11 @@ void InputManager::updateTileSelection(){
     int width = m_map->getWidth();
     int height = m_map->getHeight();
 
-    // Pobierz widoczne granice kafelków (grid coords) od renderera — bez duplikowania logiki
-    auto [gridMinX, gridMaxX, gridMinY, gridMaxY] = m_renderer->getVisibleTileBounds(width, height);
+    // Get visible tile bounds (grid coords) from the renderer to avoid duplicating logic
+    auto [gridMinX, gridMaxX, gridMinY, gridMaxY] = m_renderer->getVisibleTileBounds(*m_map);
 
-    // Iteruj w odwrotnej kolejności rysowania (malejący Y, malejący X)
-    // żeby trafić najpierw w kafelek "na wierzchu"
+    // Iterate in reverse drawing order (decreasing Y, decreasing X)
+    // so we can hit the "top-most" tile first
     for (int y = gridMaxY; y >= gridMinY; --y) {
         for (int x = gridMaxX; x >= gridMinX; --x) {
             if (x < 0 || x >= width || y < 0 || y >= height) continue;
@@ -80,13 +80,10 @@ void InputManager::updateTileSelection(){
             const Tile& tile = m_map->getTile(x, y);
             auto slope = tile.getSlopeData();
 
-            int halfW = width / 2;
-            int halfH = height / 2;
-
-            Vector2 baseN = m_renderer->IsoToScreen(x - halfW, y - halfH);
-            Vector2 baseE = m_renderer->IsoToScreen(x + 1 - halfW, y - halfH);
-            Vector2 baseS = m_renderer->IsoToScreen(x + 1 - halfW, y + 1 - halfH);
-            Vector2 baseW = m_renderer->IsoToScreen(x - halfW, y + 1 - halfH);
+            Vector2 baseN = m_renderer->IsoToScreen(x, y, m_map);
+            Vector2 baseE = m_renderer->IsoToScreen(x + 1, y, m_map);
+            Vector2 baseS = m_renderer->IsoToScreen(x + 1, y + 1, m_map);
+            Vector2 baseW = m_renderer->IsoToScreen(x, y + 1, m_map);
 
             int level = tile.getLevel();
             int hN = level + slope[0];

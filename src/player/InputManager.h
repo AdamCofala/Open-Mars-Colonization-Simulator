@@ -1,9 +1,9 @@
 #pragma once
 #pragma once
 #include "raylib.h"
-#include "world/Map.h"   // zak³adam, ¿e Map jest dostêpna
+#include "world/Map.h"
 
-class Renderer; // forward
+class Renderer; // Forward declaration
 class Gui;
 
 class InputManager
@@ -11,8 +11,8 @@ class InputManager
 public:
     void init(Map* map, Renderer* renderer, Gui* gui);
     void update();
-    Vector2 getSelectedTile() const;   // zwraca wspó³rzêdne kafelka (col, row) lub {-1,-1}
-    void updateTileSelection();        // aktualizuje m_selectedTile na podstawie pozycji myszy i 
+    Vector2 getSelectedTile() const;   // Returns tile coordinates (col, row) or {-1, -1}
+    void updateTileSelection();        // Updates m_selectedTile based on mouse position
 
 private:
     Map* m_map = nullptr;

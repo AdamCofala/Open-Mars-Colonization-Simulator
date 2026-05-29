@@ -1,13 +1,19 @@
 ﻿#include "Renderer.h"
-#include "raylib.h"
+
 #include "TextureManager.h"
 #include "world/World.h"
+#include "utils/Math.h"
+
+#include "raylib.h"
+
 #include <stdexcept>
 #include <algorithm>
 
 void Renderer::init() {
+
     if (camera)      throw std::runtime_error("Camera is already initialized!");
     if (txt_manager) throw std::runtime_error("TextureManager is already initialized!");
+
     camera = new GameCamera(IsoToScreen(0, 0));
     txt_manager = new TextureManager();
 	HideCursor();
@@ -34,11 +40,12 @@ void Renderer::setSelectedTile(Vector2 tile, Vector2 offset)
     r_selectedTileOffset = offset;
 }
 
-VisibleTileBounds Renderer::getVisibleTileBounds(int mapWidth, int mapHeight) const {
+VisibleTileBounds Renderer::getVisibleTileBounds(const Map& map) const {
     Camera2D cam = camera->getCamera();
-    int halfW = mapWidth / 2;
-    int halfH = mapHeight / 2;
+    int halfW = map.getHalfWidth();
+    int halfH = map.getHalfHeight();
 
+    // Get screen corners in world coordinates
     Vector2 corners[4] = {
         GetScreenToWorld2D({0,                      0},                      cam),
         GetScreenToWorld2D({(float)GetScreenWidth(), 0},                      cam),
@@ -48,133 +55,124 @@ VisibleTileBounds Renderer::getVisibleTileBounds(int mapWidth, int mapHeight) co
 
     int minX = INT_MAX, maxX = INT_MIN;
     int minY = INT_MAX, maxY = INT_MIN;
+
+    // Find min/max bounds in isometric grid coordinates
     for (auto& c : corners) {
-        Vector2 iso = ScreenToIso(c);
+        Vector2 iso = ScreenToIso(c, &map);
         minX = std::min(minX, (int)floor(iso.x));
         maxX = std::max(maxX, (int)ceil(iso.x));
         minY = std::min(minY, (int)floor(iso.y));
         maxY = std::max(maxY, (int)ceil(iso.y));
     }
 
-    // Margines żeby nie ucinać kafelków przy krawędzi
+    // Margin to prevent cutting tiles near edges
     minX -= 2; maxX += 2;
     minY -= 2; maxY += 2;
 
-    // Przytnij do obszaru mapy (iso space: [-halfW, halfW])
-    minX = std::max(minX, -halfW);
-    maxX = std::min(maxX, halfW);
-    minY = std::max(minY, -halfH);
-    maxY = std::min(maxY, halfH);
+    // Constrain visible range to actual map bounds
+    minX = std::max(minX, 0);
+    maxX = std::min(maxX, halfW * 2);
+    minY = std::max(minY, 0);
+    maxY = std::min(maxY, halfH * 2);
 
-    // Przelicz na grid (dodaj half offset)
     return {
-        minX + halfW,
-        maxX + halfW,
-        minY + halfH,
-        maxY + halfH
+        minX,
+        maxX,
+        minY,
+        maxY
     };
 }
 
 
 void Renderer::RenderTerrain(const Map& map) {
-    int halfW = map.getWidth() / 2;
-    int halfH = map.getHeight() / 2;
-    auto [minX, maxX, minY, maxY] = getVisibleTileBounds(map.getWidth(), map.getHeight());
+    auto [minX, maxX, minY, maxY] = getVisibleTileBounds(map);
 
     for (int y = minY; y < maxY; y++) {
         for (int x = minX; x < maxX; x++) {
             const Tile& tile = map.getTile(x, y);
 
             if (tile.isOccupied()) {
-                DrawIsoTile(tile, IsoToScreen(x - halfW, y - halfH), Fade(RED, 0.5f));
+                DrawIsoTile(tile, IsoToScreen(x, y, &map), Fade(RED, 0.5f));
                 continue;
             }
 
-            Color base = { 245, 225, 200, 255};   
-
-            // Jitter ±6
-            int noise = ((x * 1619 + y * 31337) ^ (x + y * 7)) & 0xFF;
-            int jitter = (noise % 13) - 6;
+            Color base = { 245, 225, 200, 255 };
+            int jitter = calc_jitter(x, y);
 
             base.r = (unsigned char)std::clamp((int)base.r + jitter, 0, 255);
             base.g = (unsigned char)std::clamp((int)base.g + jitter, 0, 255);
             base.b = (unsigned char)std::clamp((int)base.b + jitter, 0, 255);
-            DrawIsoTile(tile, IsoToScreen(x - halfW, y - halfH), base);
+
+            DrawIsoTile(tile, IsoToScreen(x, y, &map), base);
         }
     }
 }
 
 void Renderer::RenderStructures(const Map& map) {
-    int halfW = map.getWidth() / 2;
-    int halfH = map.getHeight() / 2;
-
     auto structures = map.getStructures();
-    
-    // Painter's algorithm: sort items by isometric depth (y + x)
+
+    // Painter's algorithm: sort items by isometric depth (y + x) safely
     std::sort(structures.begin(), structures.end(), [](const Structure& a, const Structure& b) {
         return (a.getX() + a.getY()) < (b.getX() + b.getY());
     });
 
     for (const auto& s : structures) {
-        //if (s.getTextureId() == "solar_panels") {
-            Vector2 pos = IsoToScreen(s.getX() - halfW, s.getY() - halfH);
-            
-            const Tile& baseTile = map.getTile(s.getX(), s.getY());
-            int n_raised = baseTile.getSlopeData()[0];
-            
-            // For a flat tile, n_raised is 0. Its bottom point (south vertex) is at +31 relative to its drawn Y.
-            float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
-            
-            // Center the structure image horizontally, and set its bottom at tileBottomY
-            float drawX = pos.x - txt_manager->solar_panels.width / 2.0f;
-            float drawY = tileBottomY - txt_manager->solar_panels.height + 1.0f; // +1 if to overlap perfectly
-            
-            DrawTexture(txt_manager->solar_panels, (int)drawX, (int)drawY, WHITE);
-        //}
+        Vector2 pos = IsoToScreen(s.getX(), s.getY(), &map);
+
+        const Tile& baseTile = map.getTile(s.getX(), s.getY());
+        int n_raised = baseTile.getSlopeData()[0];
+
+        // For a flat tile, n_raised is 0. Its bottom point (south vertex) is at +31 relative to its drawn Y.
+        float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
+
+        // Center the structure image horizontally, and set its bottom at tileBottomY
+        float drawX = pos.x - txt_manager->solar_panels.width / 2.0f;
+        float drawY = tileBottomY - txt_manager->solar_panels.height + 1.0f; // +1 if to overlap perfectly
+
+        DrawTexture(txt_manager->solar_panels, (int)drawX, (int)drawY, WHITE);
     }
 }
 
 void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
-    if (r_selectedTile.x < 0 || r_selectedTile.y < 0) return;
+	if (r_selectedTile.x < 0 || r_selectedTile.y < 0) return;
 
-    int startX = (int)r_selectedTile.x;
-    int startY = (int)r_selectedTile.y;
-    int endX = startX - ((int)offset.x - 1);
-    int endY = startY - ((int)offset.y - 1);
+	int startX = (int)r_selectedTile.x;
+	int startY = (int)r_selectedTile.y;
+	int endX = startX - ((int)offset.x - 1);
+	int endY = startY - ((int)offset.y - 1);
 
-    int minX = std::min(startX, endX);
-    int maxX = std::max(startX, endX);
-    int minY = std::min(startY, endY);
-    int maxY = std::max(startY, endY);
+	int minX = std::min(startX, endX);
+	int maxX = std::max(startX, endX);
+	int minY = std::min(startY, endY);
+	int maxY = std::max(startY, endY);
 
-    auto [visMinX, visMaxX, visMinY, visMaxY] = getVisibleTileBounds(map.getWidth(), map.getHeight());
+	auto [visMinX, visMaxX, visMinY, visMaxY] = getVisibleTileBounds(map);
 
-
-    // Przytnij do widocznych granic
-    minX = std::max(minX, visMinX);
-    minY = std::max(minY, visMinY);
-    maxX = std::min(maxX, visMaxX - 1);
-    maxY = std::min(maxY, visMaxY - 1);
+	// Clip to visible tile bounds to avoid unnecessary rendering calculations
+	minX = std::max(minX, visMinX);
+	minY = std::max(minY, visMinY);
+	maxX = std::min(maxX, visMaxX - 1);
+	maxY = std::min(maxY, visMaxY - 1);
 
 	std::vector<std::pair<Tile, Vector2>> selectedTiles;
 
 	bool isSelectionOnly = (offset.x == 1 && offset.y == 1);
-    bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y);
+	bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y);
 
-    if (!isSelectionOnly) {
-        Vector2 pos = IsoToScreen(startX - map.getWidth() / 2, startY - map.getHeight() / 2);
-        const Tile& baseTile = map.getTile(startX, startY);
-        int n_raised = baseTile.getSlopeData()[0];
-        
-        float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
-        
-        float drawX = pos.x - txt_manager->solar_panels.width / 2.0f;
-        float drawY = tileBottomY - txt_manager->solar_panels.height + 1.0f;
-        
-        Color structureTint = valid_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
-        DrawTexture(txt_manager->solar_panels, (int)drawX, (int)drawY, structureTint);
-    }
+	if (!isSelectionOnly) {
+		Vector2 pos = IsoToScreen(startX, startY, &map);
+		const Tile& baseTile = map.getTile(startX, startY);
+		int n_raised = baseTile.getSlopeData()[0];
 
+		// Calculate the bottom point of the structure based on the tile elevation
+		float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
+
+		float drawX = pos.x - txt_manager->solar_panels.width / 2.0f;
+		float drawY = tileBottomY - txt_manager->solar_panels.height + 1.0f;
+
+		Color structureTint = valid_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
+		DrawTexture(txt_manager->solar_panels, (int)drawX, (int)drawY, structureTint);
+	}
 }
 
 GameCamera& Renderer::getGameCamera() const {
@@ -193,16 +191,29 @@ void Renderer::shutdown() {
     }
 }
 
-Vector2 Renderer::IsoToScreen(int x, int y) const {
+Vector2 Renderer::IsoToScreen(float x, float y, const Map* map) const {
+    // If a map is provided, adjust coordinates to center the grid based on the map's dimensions
+    if (map) {
+        x -= map->getHalfWidth();
+        y -= map->getHalfHeight();
+    }
+
     return {
         (x - y) * (tileSize / 2.0f),
         (x + y) * (tileSize / 4.0f)
     };
 }
 
-Vector2 Renderer::ScreenToIso(Vector2 pos) const {
+Vector2 Renderer::ScreenToIso(Vector2 pos, const Map* map) const {
     float isoX = (pos.x / (tileSize / 2.0f) + pos.y / (tileSize / 4.0f)) / 2.0f;
     float isoY = (pos.y / (tileSize / 4.0f) - pos.x / (tileSize / 2.0f)) / 2.0f;
+
+    // If a map is provided, convert back to grid coordinates by adding half offsets
+    if (map) {
+        isoX += map->getHalfWidth();
+        isoY += map->getHalfHeight();
+    }
+
     return { isoX, isoY };
 }
 
