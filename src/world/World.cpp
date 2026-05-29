@@ -21,17 +21,19 @@ void World::init(int mapWidth, int mapHeight) {
 }
 
 void World::update(float dt) {
-	// Update world logic here
+	// Advance the global time logic and calculate in-game calendar progression
 	timeAccumulator += dt;
 
-  while (timeAccumulator >= secondsPerGameDay) {
+	while (timeAccumulator >= secondsPerGameDay) {
 		timeAccumulator -= secondsPerGameDay;
 		day++;
 
+		// 30 days per game month
 		if (day > 30) {
 			day = 1;
 			month++;
 
+			// 12 months per game year
 			if (month > 12) {
 				month = 1;
 				year++;
@@ -44,9 +46,10 @@ void World::update(float dt) {
 		totalEnergy = 0.0f;
 		totalEnergyCapacity = 0.0f;
 
+		// Calculate total energy produced and accumulated by structures
 		for (auto& structure : allStructures) {
 			structure.update(dt);
-           totalEnergy += structure.getInternalInventory().getAmount(MaterialType::ENERGY);
+			totalEnergy += structure.getInternalInventory().getAmount(MaterialType::ENERGY);
 			totalEnergyCapacity += structure.getInternalInventory().getMaxCapacity(MaterialType::ENERGY);
 		}
 	}
@@ -54,7 +57,7 @@ void World::update(float dt) {
 
 void World::shutdown() {
 	if (map) {
-		//map->shutdown(); We should call it map has some resources to free, but currently it doesn't
+		// We should call map->shutdown() if the map has resources to free, but currently it doesn't
 		delete map;
 		map = nullptr;
 	}

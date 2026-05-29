@@ -69,26 +69,35 @@ static int randInt(int min, int max) {
 void Map::generateTerrain() {
     PerlinNoise perlin(randInt(0, 10000));
 
+    // Perlin noise parameters for initial terrain generation
     const float scale = 0.05f;
     const float warpStrength = 6.0f;
     const int maxHeight = 10;
 
+    // We generate an array of vertices. A 2D grid of tiles corresponds to width+1 by height+1 vertices.
     std::vector<std::vector<int>> vertex(height + 1,
         std::vector<int>(width + 1));
 
     for (int y = 0; y <= height; y++) {
         for (int x = 0; x <= width; x++) {
+            // Calculate base noise
             float nx = perlin.noise(x * scale, y * scale);
             float ny = perlin.noise((x + 1000) * scale, (y + 1000) * scale);
+
+            // Apply domain warping to create more natural, less grid-like terrain
             float warped = perlin.noise((x + nx * warpStrength) * scale,
                 (y + ny * warpStrength) * scale);
-            warped = pow(warped,3.0f);
+
+            // Sharpen valleys and peaks by cubing the noise result
+            warped = pow(warped, 3.0f);
             vertex[y][x] = (int)(warped * maxHeight);
         }
     }
 
+    // Ensure the terrain slopes are valid for isometric rendering (no excessive steepness)
     enforceValidTerrain(vertex, width, height);
 
+    // Make map edges flat by copying adjacent vertex heights
     auto clampEdges = [&](std::vector<std::vector<int>>& v) {
        for (int x = 0; x <= width; x++) {
             v[0][x] = v[1][x];
@@ -99,12 +108,14 @@ void Map::generateTerrain() {
          v[y][0] = v[y][1];
          v[y][width] = v[y][width - 1];
        }
-
-       };
+    };
 
     clampEdges(vertex);
+
+    // Re-validate the terrain shape after edge adjustments
     enforceValidTerrain(vertex, width, height);
 
+    // Convert vertex heights into tile representations (level and slopes)
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int vN = vertex[y][x];
@@ -112,10 +123,12 @@ void Map::generateTerrain() {
             int vS = vertex[y + 1][x + 1];
             int vW = vertex[y + 1][x];
 
+            // The tile's base elevation is simply the lowest of its 4 corner vertices
             int minH = std::min({ vN, vE, vS, vW });
             Tile& tile = tiles[y * width + x];
             tile.setLevel(minH);
 
+            // A corner is considered 'sloped' if it is higher than the minimum elevation
             int slope[4] = {
                 vN > minH,
                 vE > minH,

@@ -28,7 +28,7 @@ void init()
     world->init(MAP_WIDTH, MAP_HEIGHT);
 
 	gui = new Gui();
-    gui->init(world);
+	gui->init(world, renderer);
 
     inputManager = new InputManager();
     inputManager->init(&world->getMap(), renderer, gui);

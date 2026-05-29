@@ -41,34 +41,43 @@ void GameCamera::update_movement(float dt) {
 
     Vector2 mouseDelta = GetMouseDelta();
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) {
-        camera.target.x -= mouseDelta.x / camera.zoom;
-        camera.target.y -= mouseDelta.y / camera.zoom;
-    }
-
-    // Openttd RMB Logic
-    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+    // Pan camera (Middle mouse button or OpenTTD style Right mouse button)
+    if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE) || IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
         camera.target.x -= mouseDelta.x / camera.zoom;
         camera.target.y -= mouseDelta.y / camera.zoom;
     }
 }
 
 void GameCamera::update_zoom(float dt) {
-    float wheel = GetMouseWheelMove();
+	float wheel = GetMouseWheelMove();
 
-    if (wheel != 0) {
-        targetZoom += wheel * zoomSpeed ;
+	if (wheel != 0) {
+		targetZoom += wheel * zoomSpeed ;
 		targetZoom = std::max(minZoom, std::min(maxZoom, targetZoom));
-    }
-    Vector2 mouseWorldBefore = GetScreenToWorld2D(GetMousePosition(), camera);
-    camera.zoom += (targetZoom - camera.zoom) * zoomLerpSpeed * dt;
+		zoomToMouse = true; // Manual scroll forces focus on mouse
+	}
 
-    Vector2 mouseWorldAfter = GetScreenToWorld2D(GetMousePosition(), camera);
-    camera.target.x += mouseWorldBefore.x - mouseWorldAfter.x;
-    camera.target.y += mouseWorldBefore.y - mouseWorldAfter.y;
+	if (zoomToMouse) {
+		Vector2 mouseWorldBefore = GetScreenToWorld2D(GetMousePosition(), camera);
+		camera.zoom += (targetZoom - camera.zoom) * zoomLerpSpeed * dt;
+
+		Vector2 mouseWorldAfter = GetScreenToWorld2D(GetMousePosition(), camera);
+		camera.target.x += mouseWorldBefore.x - mouseWorldAfter.x;
+		camera.target.y += mouseWorldBefore.y - mouseWorldAfter.y;
+	} else {
+		camera.zoom += (targetZoom - camera.zoom) * zoomLerpSpeed * dt;
+	}
 }
 
-
 Camera2D GameCamera::getCamera() const {
-    return camera;
+	return camera;
+}
+
+void GameCamera::setTarget(Vector2 target) {
+	camera.target = target;
+}
+
+void GameCamera::setZoom(float zoom, bool focusOnMouse) {
+	targetZoom = std::max(minZoom, std::min(maxZoom, zoom));
+	zoomToMouse = focusOnMouse;
 }

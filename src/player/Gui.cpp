@@ -1,6 +1,7 @@
 #include "Gui.h"
 #include "raylib.h"
 #include "world/World.h"
+#include "rendering/Renderer.h"
 #include "entities/MaterialType.h"
 
 namespace {
@@ -9,9 +10,10 @@ namespace {
 	}
 }
 
-void Gui::init(World* world)
+void Gui::init(World* world, Renderer* renderer)
 {
 	m_world = world;
+	m_renderer = renderer;
 	rlImGuiBeginInitImGui();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
@@ -98,11 +100,20 @@ void Gui::render()
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("View")) {
-			ImGui::MenuItem("Overview");
+			if (ImGui::MenuItem("Overview")) {
+				if (m_renderer && m_world) {
+					// Set camera to center of the map, and zoom to min
+					Vector2 centerIso = m_renderer->IsoToScreen(m_world->getMap().getHalfWidth(), m_world->getMap().getHalfHeight(), &m_world->getMap());
+					m_renderer->getGameCamera().setTarget(centerIso);
+					m_renderer->getGameCamera().setZoom(m_renderer->getGameCamera().getMinZoom(), false);
+				}
+			}
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("Help")) {
-			ImGui::MenuItem("About");
+			if (ImGui::MenuItem("About")) {
+				m_showAboutWindow = true;
+			}
 			ImGui::EndMenu();
 		}
 
@@ -174,6 +185,25 @@ void Gui::render()
 	ImGui::PopStyleColor();
 	ImGui::PopStyleVar();
 	ImGui::End();
+
+	if (m_showAboutWindow) {
+		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowPos(ImVec2(screenWidth * 0.5f, screenHeight * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+		if (ImGui::Begin("About Open Mars", &m_showAboutWindow, ImGuiWindowFlags_NoCollapse)) {
+			ImGui::Text("Open Mars Colonization Simulator");
+			ImGui::Separator();
+			ImGui::Spacing();
+			ImGui::Text("A modern, open-source city builder on Mars.");
+			ImGui::Spacing();
+			ImGui::Text("Created by:");
+			ImGui::BulletText("Adam Cofala");
+			ImGui::BulletText("Open Mars Contributors");
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::TextDisabled("Version 1.0.0-alpha.1");
+		}
+		ImGui::End();
+	}
 
 	rlImGuiEnd();
 }

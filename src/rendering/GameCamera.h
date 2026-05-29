@@ -7,11 +7,12 @@ private:
     float zoomSpeed;
     float zoomLerpSpeed;
 
-    float targetZoom;
+	float targetZoom;
 	float minZoom = 0.1f;
 	float maxZoom = 3.0f;
+	bool zoomToMouse = true;
 
-    Camera2D camera;
+	Camera2D camera;
 
 public:
     GameCamera() = default;
@@ -22,4 +23,8 @@ public:
     void update_movement(float dt);
     void update_zoom(float dt);
     Camera2D getCamera() const;
+
+    void setTarget(Vector2 target);
+    void setZoom(float zoom, bool focusOnMouse = true);
+    float getMinZoom() const { return minZoom; }
 };
