@@ -30,54 +30,54 @@ void Gui::init(World* world, Renderer* renderer)
 	ImGuiStyle& style = ImGui::GetStyle();
 
 	// Slightly more "HUD"-like, sci-fi look.
-	style.WindowRounding = 6.0f;
-	style.FrameRounding = 5.0f;
-	style.GrabRounding = 6.0f;
+	style.WindowRounding    = 6.0f;
+	style.FrameRounding     = 5.0f;
+	style.GrabRounding      = 6.0f;
 	style.ScrollbarRounding = 8.0f;
 	style.WindowPadding = ImVec2(12.0f, 10.0f);
-	style.FramePadding = ImVec2(10.0f, 7.0f);
-	style.ItemSpacing = ImVec2(10.0f, 9.0f);
+	style.FramePadding  = ImVec2(10.0f, 7.0f);
+	style.ItemSpacing   = ImVec2(10.0f, 9.0f);
 	style.WindowBorderSize = 1.0f;
-	style.FrameBorderSize = 1.0f;
-	style.PopupBorderSize = 1.0f;
-	style.TabBorderSize = 1.0f;
+	style.FrameBorderSize  = 1.0f;
+	style.PopupBorderSize  = 1.0f;
+	style.TabBorderSize    = 1.0f;
 
 	// Dark glass background + neon cyan accents.
-	style.Colors[ImGuiCol_Text] = ImVec4(0.86f, 0.92f, 1.0f, 1.0f);
+	style.Colors[ImGuiCol_Text]         = ImVec4(0.86f, 0.92f, 1.0f, 1.0f);
 	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.55f, 0.62f, 0.72f, 1.0f);
-	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.03f, 0.05f, 0.08f, 0.88f);
-	style.Colors[ImGuiCol_PopupBg] = ImVec4(0.03f, 0.05f, 0.08f, 0.95f);
-	style.Colors[ImGuiCol_Border] = ImVec4(0.10f, 0.70f, 0.95f, 0.35f);
+	style.Colors[ImGuiCol_PopupBg]      = ImVec4(0.03f, 0.05f, 0.08f, 0.95f);
+	style.Colors[ImGuiCol_WindowBg]     = ImVec4(0.03f, 0.05f, 0.08f, 0.88f);
+	style.Colors[ImGuiCol_Border]       = ImVec4(0.10f, 0.70f, 0.95f, 0.35f);
 	style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 
-	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.02f, 0.05f, 0.09f, 1.0f);
+	style.Colors[ImGuiCol_TitleBg]       = ImVec4(0.02f, 0.05f, 0.09f, 1.0f);
 	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.03f, 0.10f, 0.16f, 1.0f);
-	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.02f, 0.05f, 0.09f, 0.95f);
+	style.Colors[ImGuiCol_MenuBarBg]     = ImVec4(0.02f, 0.05f, 0.09f, 0.95f);
 
-	style.Colors[ImGuiCol_FrameBg] = ImVec4(0.07f, 0.11f, 0.16f, 1.0f);
+	style.Colors[ImGuiCol_FrameBg]        = ImVec4(0.07f, 0.11f, 0.16f, 1.0f);
 	style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.10f, 0.18f, 0.26f, 1.0f);
-	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.12f, 0.22f, 0.32f, 1.0f);
+	style.Colors[ImGuiCol_FrameBgActive]  = ImVec4(0.12f, 0.22f, 0.32f, 1.0f);
 
-	style.Colors[ImGuiCol_Button] = ImVec4(0.07f, 0.14f, 0.22f, 1.0f);
+	style.Colors[ImGuiCol_Button]        = ImVec4(0.07f, 0.14f, 0.22f, 1.0f);
 	style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.10f, 0.32f, 0.44f, 1.0f);
-	style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.12f, 0.40f, 0.55f, 1.0f);
+	style.Colors[ImGuiCol_ButtonActive]  = ImVec4(0.12f, 0.40f, 0.55f, 1.0f);
 
-	style.Colors[ImGuiCol_Header] = ImVec4(0.08f, 0.18f, 0.28f, 1.0f);
+	style.Colors[ImGuiCol_Header]        = ImVec4(0.08f, 0.18f, 0.28f, 1.0f);
 	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.10f, 0.30f, 0.44f, 1.0f);
-	style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.12f, 0.38f, 0.55f, 1.0f);
+	style.Colors[ImGuiCol_HeaderActive]  = ImVec4(0.12f, 0.38f, 0.55f, 1.0f);
 
-	style.Colors[ImGuiCol_Separator] = ImVec4(0.10f, 0.70f, 0.95f, 0.60f);
-	style.Colors[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.70f, 0.95f, 0.85f);
-	style.Colors[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.70f, 0.95f, 1.00f);
-	style.Colors[ImGuiCol_CheckMark] = ImVec4(0.10f, 0.70f, 0.95f, 1.0f);
-	style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.10f, 0.70f, 0.95f, 0.85f);
-	style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.10f, 0.78f, 1.0f, 1.0f);
-	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.10f, 0.22f, 0.32f, 1.0f);
+	style.Colors[ImGuiCol_Separator]            = ImVec4(0.10f, 0.70f, 0.95f, 0.60f);
+	style.Colors[ImGuiCol_SeparatorHovered]     = ImVec4(0.10f, 0.70f, 0.95f, 0.85f);
+	style.Colors[ImGuiCol_SeparatorActive]      = ImVec4(0.10f, 0.70f, 0.95f, 1.00f);
+	style.Colors[ImGuiCol_CheckMark]            = ImVec4(0.10f, 0.70f, 0.95f, 1.0f);
+	style.Colors[ImGuiCol_SliderGrab]           = ImVec4(0.10f, 0.70f, 0.95f, 0.85f);
+	style.Colors[ImGuiCol_SliderGrabActive]     = ImVec4(0.10f, 0.78f, 1.0f, 1.0f);
+	style.Colors[ImGuiCol_ScrollbarGrab]        = ImVec4(0.10f, 0.22f, 0.32f, 1.0f);
 	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.10f, 0.32f, 0.44f, 1.0f);
-	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.12f, 0.40f, 0.55f, 1.0f);
+	style.Colors[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.12f, 0.40f, 0.55f, 1.0f);
 
 	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.10f, 0.70f, 0.95f, 0.25f);
-	style.Colors[ImGuiCol_NavHighlight] = ImVec4(0.10f, 0.70f, 0.95f, 0.60f);
+	style.Colors[ImGuiCol_NavHighlight]   = ImVec4(0.10f, 0.70f, 0.95f, 0.60f);
 }
 
 void Gui::render()
@@ -93,12 +93,14 @@ void Gui::render()
 			ImGui::MenuItem("Load");
 			ImGui::EndMenu();
 		}
-       if (ImGui::BeginMenu("Speed")) {
+
+        if (ImGui::BeginMenu("Speed")) {
 			ImGui::Text("Game Speed");
 			ImGui::SetNextItemWidth(140.0f);
 			ImGui::SliderFloat("##speed", &m_gameSpeed, 0.5f, 4.0f, "x%.1f");
 			ImGui::EndMenu();
 		}
+
 		if (ImGui::BeginMenu("View")) {
 			if (ImGui::MenuItem("Overview")) {
 				if (m_renderer && m_world) {
@@ -110,6 +112,7 @@ void Gui::render()
 			}
 			ImGui::EndMenu();
 		}
+
 		if (ImGui::BeginMenu("Help")) {
 			if (ImGui::MenuItem("About")) {
 				m_showAboutWindow = true;
@@ -128,11 +131,11 @@ void Gui::render()
 		ImGui::EndMainMenuBar();
 	}
 
- ImGui::SetNextWindowPos(ImVec2(screenWidth - 20.0f, 40.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowPos(ImVec2(screenWidth - 20.0f, 40.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
 	ImGui::Begin("Build Menu", nullptr,
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 
-   ImGui::Text("Resources");
+    ImGui::Text("Resources");
 	ImGui::Separator();
 	if (m_world) {
         float energyTotal = m_world->getTotalEnergy();
@@ -147,6 +150,7 @@ void Gui::render()
 	ImGui::Spacing();
 	ImGui::Text("Structures");
 	ImGui::Separator();
+
 	bool buildSelected = m_selectedTool == SelectedTool::Build && m_selectedBuilding == 0;
 	ImGui::PushStyleColor(ImGuiCol_Button, SelectedColor(buildSelected));
 	if (ImGui::Button("Solar Panel", ImVec2(-1.0f, 0.0f))) {
@@ -156,7 +160,7 @@ void Gui::render()
 	ImGui::PopStyleColor();
 	ImGui::End();
 
-  ImGui::SetNextWindowPos(ImVec2(screenWidth * 0.5f, screenHeight - 15.0f), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
+    ImGui::SetNextWindowPos(ImVec2(screenWidth * 0.5f, screenHeight - 15.0f), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
 	ImGui::Begin("Toolbar", nullptr,
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
 
@@ -168,6 +172,7 @@ void Gui::render()
 	}
 	ImGui::PopStyleColor();
 	ImGui::SameLine();
+
 	ImGui::PushStyleColor(ImGuiCol_Button, SelectedColor(m_selectedTool == SelectedTool::Build));
 	if (ImGui::Button("Build")) {
 		m_selectedTool = SelectedTool::Build;
@@ -178,26 +183,31 @@ void Gui::render()
 	ImGui::PopStyleColor();
 	ImGui::SameLine();
 	ImGui::PushStyleColor(ImGuiCol_Button, SelectedColor(m_selectedTool == SelectedTool::Demolish));
+
 	if (ImGui::Button("Demolish")) {
 		m_selectedTool = SelectedTool::Demolish;
 		m_selectedBuilding = -1;
 	}
+
 	ImGui::PopStyleColor();
 	ImGui::PopStyleVar();
 	ImGui::End();
 
 	if (m_showAboutWindow) {
+
 		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowPos(ImVec2(screenWidth * 0.5f, screenHeight * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
-		if (ImGui::Begin("About Open Mars", &m_showAboutWindow, ImGuiWindowFlags_NoCollapse)) {
+
+		if (ImGui::Begin("About Open Mars", &m_showAboutWindow, ImGuiWindowFlags_AlwaysAutoResize)) {
 			ImGui::Text("Open Mars Colonization Simulator");
 			ImGui::Separator();
 			ImGui::Spacing();
-			ImGui::Text("A modern, open-source city builder on Mars.");
+			ImGui::Text("A modern, open-source game about colonizing Mars.\nSmart horse lives in car.");
 			ImGui::Spacing();
 			ImGui::Text("Created by:");
-			ImGui::BulletText("Adam Cofala");
-			ImGui::BulletText("Open Mars Contributors");
+			ImGui::BulletText("Adam Cofala @CoreOfChaos");
+			ImGui::BulletText("Jakub Salata @JLetuce");
+			ImGui::BulletText("Jedrzej Tyminski @Kayla137");
 			ImGui::Spacing();
 			ImGui::Separator();
 			ImGui::TextDisabled("Version 1.0.0-alpha.1");
