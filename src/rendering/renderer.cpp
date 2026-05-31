@@ -47,9 +47,9 @@ VisibleTileBounds Renderer::getVisibleTileBounds(const Map& map) const {
 
     // Get screen corners in world coordinates
     Vector2 corners[4] = {
-        GetScreenToWorld2D({0,                      0},                      cam),
-        GetScreenToWorld2D({(float)GetScreenWidth(), 0},                      cam),
-        GetScreenToWorld2D({0,                      (float)GetScreenHeight()}, cam),
+        GetScreenToWorld2D({0,0},cam),
+        GetScreenToWorld2D({(float)GetScreenWidth(), 0}, cam),
+        GetScreenToWorld2D({0,(float)GetScreenHeight()}, cam),
         GetScreenToWorld2D({(float)GetScreenWidth(), (float)GetScreenHeight()}, cam)
     };
 
@@ -75,12 +75,7 @@ VisibleTileBounds Renderer::getVisibleTileBounds(const Map& map) const {
     minY = std::max(minY, 0);
     maxY = std::min(maxY, halfH * 2);
 
-    return {
-        minX,
-        maxX,
-        minY,
-        maxY
-    };
+    return {minX, maxX, minY, maxY};
 }
 
 
