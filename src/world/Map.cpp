@@ -149,12 +149,12 @@ Tile& Map::getTile(int x, int y) const
     return const_cast<Tile&>(tiles[y * width + x]);
 }
 
-std::vector<Structure>& Map::getStructures()
+std::vector<std::unique_ptr<Structure>>& Map::getStructures()
 {
     return structures;
 }
 
-const std::vector<Structure>& Map::getStructures() const
+const std::vector<std::unique_ptr<Structure>>& Map::getStructures() const
 {
     return structures;
 }
@@ -195,25 +195,34 @@ bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset) const {
 	return true;
 }
 
-void Map::addStructure(const Structure& structure)
+void Map::addStructure(std::unique_ptr<Structure> structure)
 {
-	int x = structure.getX();
-	int y = structure.getY();
-	int xOffset = structure.getXOffset();
-	int yOffset = structure.getYOffset();
+    if (!structure) {
+        return;
+    }
 
-	if (!canPlaceStructure(x, y, xOffset, yOffset)) {
-       return;
-	}
+    int x = structure->getX();
+    int y = structure->getY();
+    int xOffset = structure->getXOffset();
+    int yOffset = structure->getYOffset();
 
-	// Apply occupation now that we know the whole area is valid
-	for (int dy = 0; dy < yOffset; ++dy) {
-		for (int dx = 0; dx < xOffset; ++dx) {
-			int tileX = x - dx;
-			int tileY = y - dy;
-			getTile(tileX, tileY).setOccupied(true);
-		}
-	}
+    if (!canPlaceStructure(x, y, xOffset, yOffset)) {
+        return;
+    }
 
-	structures.push_back(structure);
+    Structure* rawStructurePtr = structure.get();
+
+    for (int dy = 0; dy < yOffset; ++dy) {
+        for (int dx = 0; dx < xOffset; ++dx) {
+            int tileX = x - dx;
+            int tileY = y - dy;
+
+            Tile& tile = getTile(tileX, tileY);
+            tile.setOccupied(true);
+
+            tile.setStructure(rawStructurePtr);
+        }
+    }
+
+    structures.push_back(std::move(structure));
 }

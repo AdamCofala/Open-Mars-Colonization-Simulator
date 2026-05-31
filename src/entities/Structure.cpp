@@ -14,7 +14,7 @@ void Structure::setInternalCapacity(MaterialType type, float capacity) {
     internalInventory.setMaxCapacity(type, capacity);
 }
 
-void Structure::update(float dt) {
+void Structure::update(float dt, Map& map) {
     bool canOperate = true;
 
     for (const auto& [material, rate] : consumeRates) {
