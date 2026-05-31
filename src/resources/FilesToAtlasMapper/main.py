@@ -1,8 +1,8 @@
 from PIL import Image
 import os
 
-TILE_DIR = "Tiles"
-OUTPUT = "atlas.png"
+TILE_DIR = "Pipes"
+OUTPUT = "pipe_atlas.png"
 
 PADDING = 1
 MAX_ROW_WIDTH = 1024
