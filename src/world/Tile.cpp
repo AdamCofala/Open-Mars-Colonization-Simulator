@@ -1,6 +1,5 @@
 #include "Tile.h"
 
-
 void Tile::init(int startX, int startY, int init_slope_data[4]) {
     x = startX;
     y = startY;
@@ -66,4 +65,16 @@ void Tile::setSlopeData(int newSlopeData[4]) {
     for (int i = 0; i < 4; ++i) {
         slope_data[i] = newSlopeData[i];
     }
+}
+
+void Tile::setStructure(Structure* newStructure) {
+    structure = newStructure;
+}
+
+Structure* Tile::getStructure() {
+    return structure;
+}
+
+const Structure* Tile::getStructure() const {
+    return structure;
 }

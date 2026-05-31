@@ -104,25 +104,27 @@ void Renderer::RenderTerrain(const Map& map) {
 }
 
 void Renderer::RenderStructures(const Map& map) {
-    auto structures = map.getStructures();
+    std::vector<const Structure*> sortedStructures;
+    for (const auto& structurePtr : map.getStructures()) {
+        if (structurePtr != nullptr) {
+            sortedStructures.push_back(structurePtr.get());
+        }
+    }
 
-    // Painter's algorithm: sort items by isometric depth (y + x) safely
-    std::sort(structures.begin(), structures.end(), [](const Structure& a, const Structure& b) {
-        return (a.getX() + a.getY()) < (b.getX() + b.getY());
-    });
+    std::sort(sortedStructures.begin(), sortedStructures.end(), [](const Structure* a, const Structure* b) {
+        return (a->getX() + a->getY()) < (b->getX() + b->getY());
+        });
 
-    for (const auto& s : structures) {
-        Vector2 pos = IsoToScreen(s.getX(), s.getY(), &map);
+    for (const auto* s : sortedStructures) {
+        Vector2 pos = IsoToScreen(s->getX(), s->getY(), &map);
 
-        const Tile& baseTile = map.getTile(s.getX(), s.getY());
+        const Tile& baseTile = map.getTile(s->getX(), s->getY());
         int n_raised = baseTile.getSlopeData()[0];
 
-        // For a flat tile, n_raised is 0. Its bottom point (south vertex) is at +31 relative to its drawn Y.
         float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
 
-        // Center the structure image horizontally, and set its bottom at tileBottomY
         float drawX = pos.x - txt_manager->solar_panels.width / 2.0f;
-        float drawY = tileBottomY - txt_manager->solar_panels.height + 1.0f; // +1 if to overlap perfectly
+        float drawY = tileBottomY - txt_manager->solar_panels.height + 1.0f;
 
         DrawTexture(txt_manager->solar_panels, (int)drawX, (int)drawY, WHITE);
     }

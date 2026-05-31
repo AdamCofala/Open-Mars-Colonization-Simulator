@@ -12,7 +12,7 @@ public:
         setInternalCapacity(MaterialType::ENERGY, 500.0f);
     }
 
-    void update(float dt) override {
-        Structure::update(dt);
+    void update(float dt, Map& map) override {
+        Structure::update(dt, map);
     }
 };

@@ -10,10 +10,13 @@
 // This way you can also implement structures that consume resources, like a factory that consumes energy to produce goods,
 // or a water pump that consumes energy to produce water.
 
+class Map;
+
 class Structure {
 protected:
     std::unordered_map<MaterialType, int> productionRates; // How much of each resource the structure produces per internal time unit
     std::unordered_map<MaterialType, int> consumeRates;
+    std::vector<Structure*> connectedStructures;
     void setInternalCapacity(MaterialType type, float capacity);
 private:
     int x;
@@ -28,7 +31,7 @@ public:
     virtual ~Structure() = default;
 
     virtual void init(int startX, int startY, const std::string& texId, int xOffset, int yOffset);
-    virtual void update(float dt);
+    virtual void update(float dt, Map& map);
     virtual std::string getTextureId() const;
 
     int getX() const;
@@ -37,4 +40,8 @@ public:
     int getYOffset() const { return yOffset; }
 
     const Inventory& getInternalInventory() const;
+
+    void addConnection(Structure* neighbor);
+    void removeConnection(Structure* neighbor);
+    const std::vector<Structure*>& getConnections() const;
 };

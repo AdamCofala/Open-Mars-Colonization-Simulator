@@ -14,7 +14,7 @@ void Structure::setInternalCapacity(MaterialType type, float capacity) {
     internalInventory.setMaxCapacity(type, capacity);
 }
 
-void Structure::update(float dt) {
+void Structure::update(float dt, Map& map) {
     bool canOperate = true;
 
     for (const auto& [material, rate] : consumeRates) {
@@ -56,4 +56,26 @@ int Structure::getX() const {
 
 int Structure::getY() const {
     return y;
+}
+
+void Structure::addConnection(Structure* neighbor)
+{
+    if (std::find(connectedStructures.begin(), connectedStructures.end(), neighbor) == connectedStructures.end()) 
+    {
+        connectedStructures.push_back(neighbor);
+    }
+}
+
+void Structure::removeConnection(Structure* neighbor)
+{
+    auto it = std::find(connectedStructures.begin(), connectedStructures.end(), neighbor);
+    if (it != connectedStructures.end()) 
+    {
+        connectedStructures.erase(it);
+    }
+}
+
+const std::vector<Structure*>& Structure::getConnections() const 
+{
+    return connectedStructures;
 }

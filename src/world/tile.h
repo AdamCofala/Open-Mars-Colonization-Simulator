@@ -2,11 +2,14 @@
 #include <string>
 #include <vector>
 
+// deklaracaja poprzedzaj¹ca bo siê robi³ niez³y Meksyk xD
+class Structure;
 
 class Tile {
 private:
     int x;
     int y;
+    Structure* structure = nullptr;
     bool occupied;
     std::string baseTextureId;
 	int slope_data[4]; // [0] north, [1] east, [2] south, [3] west, for example 0000 means flat, 1000 means slope north, 1100 means slope north-east, etc.
@@ -28,4 +31,8 @@ public:
     void setLevel(int newLevel);
     void setTextureId(const std::string& textureId);
     void setSlopeData(int newSlopeData[4]);
+
+    void setStructure(Structure* newStructure);
+    Structure* getStructure();
+    const Structure* getStructure() const;
 };

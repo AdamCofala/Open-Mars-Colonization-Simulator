@@ -39,13 +39,18 @@ void InputManager::update()
 
     if (canInteractWithGame && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && m_selected_valid()) {
         if (tool == Gui::SelectedTool::Build && selectedBuilding == 0) {
-            bool placement_success = m_map->canPlaceStructure((int)m_selectedTile.x, (int)m_selectedTile.y, (int)m_selectedTileOffset.x, (int)m_selectedTileOffset.y);
-            if (placement_success) {
-                m_map->addStructure(SolarPanel(int(m_selectedTile.x), int(m_selectedTile.y)));
+
+            auto newBuilding = std::make_unique<SolarPanel>(int(m_selectedTile.x), int(m_selectedTile.y));
+
+            size_t structuresBefore = m_map->getStructures().size();
+
+            m_map->addStructure(std::move(newBuilding));
+
+            if (m_map->getStructures().size() > structuresBefore) {
                 if (m_gui) {
                     m_gui->setSelectedTool(Gui::SelectedTool::Select);
                 }
-                
+
                 m_selectedTile = { -1, -1 };
                 m_selectedTileOffset = { 1, 1 };
                 m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
