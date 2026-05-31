@@ -219,8 +219,33 @@ void Map::addStructure(std::unique_ptr<Structure> structure)
 
             Tile& tile = getTile(tileX, tileY);
             tile.setOccupied(true);
-
             tile.setStructure(rawStructurePtr);
+        }
+    }
+
+    for (int dy = 0; dy < yOffset; ++dy) {
+        for (int dx = 0; dx < xOffset; ++dx) {
+            int tileX = x - dx;
+            int tileY = y - dy;
+
+            int directionsX[] = { 0, 0, -1, 1 };
+            int directionsY[] = { -1, 1, 0, 0 };
+
+            for (int i = 0; i < 4; ++i) {
+                int nx = tileX + directionsX[i];
+                int ny = tileY + directionsY[i];
+
+                if (nx >= 0 && nx < static_cast<int>(width) &&
+                    ny >= 0 && ny < static_cast<int>(height)) {
+
+                    Structure* neighbor = getTile(nx, ny).getStructure();
+
+                    if (neighbor != nullptr && neighbor != rawStructurePtr) {
+                        rawStructurePtr->addConnection(neighbor);
+                        neighbor->addConnection(rawStructurePtr);
+                    }
+                }
+            }
         }
     }
 

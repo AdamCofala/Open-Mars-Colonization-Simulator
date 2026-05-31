@@ -71,6 +71,10 @@ void Tile::setStructure(Structure* newStructure) {
     structure = newStructure;
 }
 
+Structure* Tile::getStructure() {
+    return structure;
+}
+
 const Structure* Tile::getStructure() const {
     return structure;
 }
