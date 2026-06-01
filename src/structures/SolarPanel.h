@@ -3,13 +3,24 @@
 #include "entities/Enums.h"
 
 class SolarPanel : public Structure {
-	std::string textureId = "solar_panels";
+    std::string textureId = "solar_panels";
 public:
     SolarPanel(int x, int y) {
         productionRates[MaterialType::ENERGY] = 1;
-        // Use the init method to set xOffset and yOffset since they are private in Structure
-        init(x, y, "", 3, 3); // Provide default values for x, y, textureId, xOffset, yOffset
+
+        init(x, y, "", 3, 3);
         setInternalCapacity(MaterialType::ENERGY, 500.0f);
+
+        StructurePort outputPort;
+
+        outputPort.offsetX = 0;
+        outputPort.offsetY = 0;
+        outputPort.type = PortType::OUTPUT;
+
+
+        outputPort.dir = Direction::SOUTH_WEST;
+
+        m_ports.push_back(outputPort);
     }
 
     void update(float dt, Map& map) override {

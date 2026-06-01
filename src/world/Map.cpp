@@ -225,7 +225,6 @@ void Map::addStructure(std::unique_ptr<Structure> structure) {
     int xOff = rawPtr->getXOffset();
     int yOff = rawPtr->getYOffset();
 
-    // Zajmujemy kafelki w lewo i w górę (oryginalny kierunek)
     for (int row = 0; row < yOff; ++row) {
         for (int col = 0; col < xOff; ++col) {
             getTile(x - col, y - row).setStructure(rawPtr);
@@ -281,7 +280,8 @@ void Map::rebuildNetworks() {
                     }
                     else {
                         Direction hisDir = static_cast<Direction>((i + 2) % 4);
-                        PortType tilePort = neighbor->getPortAtTile(nx, ny, hisDir);
+
+                        PortType tilePort = neighbor->getPortAtTile(px, py, hisDir);
                         if (tilePort == PortType::INPUT || tilePort == PortType::OUTPUT) {
                             mask |= (8 >> i);
                         }
@@ -292,7 +292,7 @@ void Map::rebuildNetworks() {
 
         int popcnt = (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1) + ((mask >> 3) & 1);
         if (popcnt == 0) {
-            mask = 3; // izolowana rura na płaskim -> 0011
+            mask = 3;
         }
         else if (popcnt == 1) {
             for (int i = 0; i < 4; ++i) {
@@ -306,7 +306,6 @@ void Map::rebuildNetworks() {
         p->setConnectionMask(mask);
     }
 
-    // reszta sieci bez zmian...
     for (Pipe* p : allPipes) {
         if (p->network != nullptr) continue;
 
@@ -341,7 +340,8 @@ void Map::rebuildNetworks() {
                         }
                         else {
                             Direction hisDir = static_cast<Direction>((i + 2) % 4);
-                            PortType tilePort = neighbor->getPortAtTile(nx, ny, hisDir);
+
+                            PortType tilePort = neighbor->getPortAtTile(cx, cy, hisDir);
 
                             if (tilePort == PortType::OUTPUT) {
                                 if (std::find(newNet->producers.begin(), newNet->producers.end(), neighbor) == newNet->producers.end()) {

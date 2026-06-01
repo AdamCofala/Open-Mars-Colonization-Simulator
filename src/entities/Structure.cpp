@@ -66,12 +66,23 @@ const std::vector<StructurePort>& Structure::getPorts() const {
     return m_ports;
 }
 
-PortType Structure::getPortAtTile(int worldX, int worldY, Direction edgeDir) const {
+PortType Structure::getPortAtTile(int pipeWorldX, int pipeWorldY, Direction edgeDir) const {
     for (const auto& port : m_ports) {
-        int portWorldX = x + port.offsetX;
-        int portWorldY = y + port.offsetY;
+        // Obliczamy fizyczn¹ pozycjê kafelka na mapie, na którym le¿y port
+        int portX = this->x + port.offsetX;
+        int portY = this->y + port.offsetY;
 
-        if (portWorldX == worldX && portWorldY == worldY && port.dir == edgeDir) {
+        // Przesuwamy o 1 kafel w stronê, w któr¹ port jest skierowany (ujœcie portu)
+        // dopasowane do Twojego izometrycznego enum Direction
+        if (port.dir == Direction::NORTH_EAST) { portY -= 1; }
+        else if (port.dir == Direction::SOUTH_EAST) { portX += 1; }
+        else if (port.dir == Direction::SOUTH_WEST) { portY += 1; }
+        else if (port.dir == Direction::NORTH_WEST) { portX -= 1; }
+
+        // Jeœli ujœcie portu trafia dok³adnie w kafelek, na którym stoi rura
+        // ORAZ kierunek rury zgadza siê z kierunkiem portu
+
+        if (portX == pipeWorldX && portY == pipeWorldY && port.dir == edgeDir) {
             return port.type;
         }
     }
