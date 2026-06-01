@@ -70,7 +70,6 @@ static int randInt(int min, int max) {
 void Map::generateTerrain() {
     PerlinNoise perlin(randInt(0, 10000));
 
-    // Perlin noise parameters for initial terrain generation
     const float scale = 0.05f;
     const float warpStrength = 6.0f;
     const int maxHeight = 10;
@@ -122,12 +121,10 @@ void Map::generateTerrain() {
         }
     }
 
-    // Parameters for lake/ice generation
-    const float lakeNoiseScale = 0.1f;  // spatial frequency of the lake noise
-    const float lakeNoiseThreshold = 0.5f; // basins above this value become ice
-    const int   minBasinSize = 2;     // minimum flat-tile count to consider a basin
+    const float lakeNoiseScale = 0.1f;
+    const float lakeNoiseThreshold = 0.5f;
+    const int   minBasinSize = 2;
 
-    // Build a level grid for quick neighbour lookups
     std::vector<std::vector<int>>  level(height, std::vector<int>(width));
     std::vector<std::vector<bool>> visited(height, std::vector<bool>(width, false));
 
@@ -147,14 +144,13 @@ void Map::generateTerrain() {
 
             const int basinLevel = level[y][x];
 
-            // BFS flood-fill to collect all flat tiles at the same elevation
             std::vector<std::pair<int, int>> basin;
             std::queue<std::pair<int, int>> q;
             q.push({ x, y });
             visited[y][x] = true;
 
             bool touchesEdge = false;
-            bool hasOutlet = false; // true if any neighbour is lower (water would drain)
+            bool hasOutlet = false;
 
             while (!q.empty()) {
                 auto [cx, cy] = q.front(); q.pop();
@@ -184,11 +180,9 @@ void Map::generateTerrain() {
                 }
             }
 
-            // Only enclosed, drainless basins of sufficient size become ice
             if (touchesEdge || hasOutlet || (int)basin.size() < minBasinSize)
                 continue;
 
-            // Sample lake noise at the basin centroid to vary which basins freeze
             float avgX = 0, avgY = 0;
             for (auto& [bx, by] : basin) { avgX += bx; avgY += by; }
             avgX /= basin.size();
@@ -222,38 +216,47 @@ const std::vector<std::unique_ptr<Structure>>& Map::getStructures() const
 
 int Map::getWidth() const
 {
-	return width;
+    return width;
 }
 
 int Map::getHeight() const
 {
-	return height;
+    return height;
 }
 
 int Map::getHalfWidth() const
 {
-	return width / 2;
+    return width / 2;
 }
 
 int Map::getHalfHeight() const
 {
-	return height / 2;
+    return height / 2;
 }
 
-bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset) const {
-	for (int dy = 0; dy < yOffset; ++dy) {
-		for (int dx = 0; dx < xOffset; ++dx) {
-			int tileX = x - dx;
-			int tileY = y - dy;
-			if (tileX < 0 || tileX >= width || tileY < 0 || tileY >= height) {
-				return false;
-			}
-			if (!getTile(tileX, tileY).isFlat() || getTile(tileX, tileY).isOccupied()) {
-				return false;
-			}
-		}
-	}
-	return true;
+bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset, bool isPipe) const {
+    for (int dy = 0; dy < yOffset; ++dy) {
+        for (int dx = 0; dx < xOffset; ++dx) {
+            int tileX = x - dx;
+            int tileY = y - dy;
+            if (tileX < 0 || tileX >= width || tileY < 0 || tileY >= height) {
+                return false;
+            }
+            const Tile& tile = getTile(tileX, tileY);
+            if (tile.isOccupied()) return false;
+            if (isPipe) {
+                auto slope = tile.getSlopeData();
+                bool flat = tile.isFlat();
+                bool slope1100 = (slope[0] == 1 && slope[1] == 1 && slope[2] == 0 && slope[3] == 0);
+                bool slope1001 = (slope[0] == 1 && slope[1] == 0 && slope[2] == 0 && slope[3] == 1);
+                if (!flat && !slope1100 && !slope1001) return false;
+            }
+            else {
+                if (!tile.isFlat()) return false;
+            }
+        }
+    }
+    return true;
 }
 
 void Map::addStructure(std::unique_ptr<Structure> structure) {
@@ -269,84 +272,136 @@ void Map::addStructure(std::unique_ptr<Structure> structure) {
         }
     }
 
-    int directionsX[] = { 1,  0, -1,  0 };
-    int directionsY[] = { 0,  1,  0, -1 };
+    structures.push_back(std::move(structure));
 
-    if (rawPtr->isPipe()) {
-        Pipe* rawPipe = static_cast<Pipe*>(rawPtr);
+    rebuildNetworks();
+}
 
-        auto newNet = std::make_unique<PipeNetwork>();
-        rawPipe->network = newNet.get();
-        newNet->pipes.push_back(rawPipe);
-        allNetworks.push_back(std::move(newNet));
+void Map::rebuildNetworks() {
+    allNetworks.clear();
 
-        int currentMask = 0;
+    int directionsX[] = { 0,  1,  0, -1 };
+    int directionsY[] = { -1, 0,  1, 0 };
 
+    std::vector<Pipe*> allPipes;
+    for (const auto& structPtr : structures) {
+        if (structPtr && structPtr->isPipe()) {
+            Pipe* p = static_cast<Pipe*>(structPtr.get());
+            p->network = nullptr;
+            p->setConnectionMask(0);
+            allPipes.push_back(p);
+        }
+    }
+
+    for (Pipe* p : allPipes) {
+        int px = p->getX();
+        int py = p->getY();
+        const Tile& tile = getTile(px, py);
+        auto slope = tile.getSlopeData();
+        bool slope1100 = (slope[0] == 1 && slope[1] == 1 && slope[2] == 0 && slope[3] == 0);
+        bool slope1001 = (slope[0] == 1 && slope[1] == 0 && slope[2] == 0 && slope[3] == 1);
+
+        if (slope1100) {
+            p->setConnectionMask(0); // 0000
+            continue;
+        }
+        else if (slope1001) {
+            p->setConnectionMask(1); // 0001 (tylko W)
+            continue;
+        }
+
+        int mask = 0;
         for (int i = 0; i < 4; ++i) {
-            int nx = x + directionsX[i];
-            int ny = y + directionsY[i];
+            int nx = px + directionsX[i];
+            int ny = py + directionsY[i];
 
             if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
                 Structure* neighbor = getTile(nx, ny).getStructure();
-
-                if (neighbor != nullptr && neighbor != rawPipe) {
-                    Direction myDir = static_cast<Direction>(i);
-                    Direction hisDir = static_cast<Direction>((i + 2) % 4);
-
+                if (neighbor) {
                     if (neighbor->isPipe()) {
-                        Pipe* neighborPipe = static_cast<Pipe*>(neighbor);
-
-                        currentMask |= (1 << i);
-                        neighborPipe->setConnectionMask(neighborPipe->getConnectionMask() | (1 << hisDir));
-
-                        rawPipe->network->mergeWith(neighborPipe->network);
+                        mask |= (8 >> i);
                     }
                     else {
+                        Direction hisDir = static_cast<Direction>((i + 2) % 4);
                         PortType tilePort = neighbor->getPortAtTile(nx, ny, hisDir);
-
-                        if (tilePort == PortType::OUTPUT) {
-                            rawPipe->network->producers.push_back(neighbor);
-                            currentMask |= (1 << i);
-                        }
-                        else if (tilePort == PortType::INPUT) {
-                            rawPipe->network->consumers.push_back(neighbor);
-                            currentMask |= (1 << i);
+                        if (tilePort == PortType::INPUT || tilePort == PortType::OUTPUT) {
+                            mask |= (8 >> i);
                         }
                     }
                 }
             }
         }
-        rawPipe->setConnectionMask(currentMask);
+
+        int popcnt = (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1) + ((mask >> 3) & 1);
+        if (popcnt == 0) {
+            mask = 0b0101; // Domyślnie łączymy z N i E, ale to tylko estetyka, nie ma wpływu na działanie sieci
+		}
+        else if (popcnt == 1)
+        {
+            for (int i = 0; i < 4; ++i) {
+                if (mask & (8 >> i)) {
+                    mask |= (8 >> ((i + 2) % 4));
+                    break;
+                }
+            }
+        }
+
+        p->setConnectionMask(mask);
     }
-    else {
-        for (const auto& port : rawPtr->getPorts()) {
-            int portX = x + port.offsetX;
-            int portY = y + port.offsetY;
 
-            int targetX = portX + directionsX[static_cast<int>(port.dir)];
-            int targetY = portY + directionsY[static_cast<int>(port.dir)];
+    for (Pipe* p : allPipes) {
+        if (p->network != nullptr) continue;
 
-            if (targetX >= 0 && targetX < width && targetY >= 0 && targetY < height) {
-                Structure* neighbor = getTile(targetX, targetY).getStructure();
+        auto newNet = std::make_unique<PipeNetwork>();
+        p->network = newNet.get();
+        newNet->pipes.push_back(p);
 
-                if (neighbor != nullptr && neighbor->isPipe()) {
-                    Pipe* neighborPipe = static_cast<Pipe*>(neighbor);
-                    Direction hisDir = static_cast<Direction>((static_cast<int>(port.dir) + 2) % 4);
+        std::vector<Pipe*> queue;
+        queue.push_back(p);
 
-                    neighborPipe->setConnectionMask(neighborPipe->getConnectionMask() | (1 << hisDir));
+        while (!queue.empty()) {
+            Pipe* current = queue.back();
+            queue.pop_back();
 
-                    if (port.type == PortType::OUTPUT) {
-                        neighborPipe->network->producers.push_back(rawPtr);
-                    }
-                    else if (port.type == PortType::INPUT) {
-                        neighborPipe->network->consumers.push_back(rawPtr);
+            int cx = current->getX();
+            int cy = current->getY();
+
+            for (int i = 0; i < 4; ++i) {
+                int nx = cx + directionsX[i];
+                int ny = cy + directionsY[i];
+
+                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                    Structure* neighbor = getTile(nx, ny).getStructure();
+                    if (neighbor) {
+                        if (neighbor->isPipe()) {
+                            Pipe* neighborPipe = static_cast<Pipe*>(neighbor);
+                            if (neighborPipe->network == nullptr) {
+                                neighborPipe->network = newNet.get();
+                                newNet->pipes.push_back(neighborPipe);
+                                queue.push_back(neighborPipe);
+                            }
+                        }
+                        else {
+                            Direction hisDir = static_cast<Direction>((i + 2) % 4);
+                            PortType tilePort = neighbor->getPortAtTile(nx, ny, hisDir);
+
+                            if (tilePort == PortType::OUTPUT) {
+                                if (std::find(newNet->producers.begin(), newNet->producers.end(), neighbor) == newNet->producers.end()) {
+                                    newNet->producers.push_back(neighbor);
+                                }
+                            }
+                            if (tilePort == PortType::INPUT) {
+                                if (std::find(newNet->consumers.begin(), newNet->consumers.end(), neighbor) == newNet->consumers.end()) {
+                                    newNet->consumers.push_back(neighbor);
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+        allNetworks.push_back(std::move(newNet));
     }
-
-    structures.push_back(std::move(structure));
 }
 
 void Map::updateNetworks(float dt) {

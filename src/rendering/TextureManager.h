@@ -55,21 +55,23 @@ private:
     }
 
     void load_pipes_textures() {
-        PipeTexturesInfo.fill(Rectangle{0, 0, 0, 0});
-        
-        PipeTexturesInfo[0] = Rectangle{715, 0, 64, 42};  // 0000
-        PipeTexturesInfo[1] = Rectangle{780, 0, 64, 42};  // 0001 
-        PipeTexturesInfo[3] = Rectangle{0, 0, 64, 35};    // 0011
-        PipeTexturesInfo[5] = Rectangle{65, 0, 64, 35};   // 0101
-        PipeTexturesInfo[6] = Rectangle{130, 0, 64, 31};  // 0110
-        PipeTexturesInfo[7] = Rectangle{195, 0, 64, 35};  // 0111
-        PipeTexturesInfo[9] = Rectangle{260, 0, 64, 35};  // 1001
-        PipeTexturesInfo[10] = Rectangle{325, 0, 64, 35}; // 1010
-        PipeTexturesInfo[11] = Rectangle{390, 0, 64, 35}; // 1011
-        PipeTexturesInfo[12] = Rectangle{455, 0, 64, 35}; // 1100
-        PipeTexturesInfo[13] = Rectangle{520, 0, 64, 35}; // 1101
-        PipeTexturesInfo[14] = Rectangle{585, 0, 64, 35}; // 1110
-        PipeTexturesInfo[15] = Rectangle{650, 0, 64, 35}; // 1111
+        PipeTexturesInfo.fill(Rectangle{ 0, 0, 0, 0 });
+        PipeTexturesInfo[1] = Rectangle{ 715, 0, 64, 42 };  // 0000
+        PipeTexturesInfo[0] = Rectangle{ 780, 0, 64, 42 };  // 0001 (W)
+        PipeTexturesInfo[2] = Rectangle{ 715, 0, 64, 42 };  // 0010 (S) – fallback do pustej
+        PipeTexturesInfo[3] = Rectangle{ 0, 0, 64, 35 };    // 0011 (S+W)
+        PipeTexturesInfo[4] = Rectangle{ 715, 0, 64, 42 };  // 0100 (E) – fallback
+        PipeTexturesInfo[5] = Rectangle{ 65, 0, 64, 35 };   // 0101 (E+W)
+        PipeTexturesInfo[6] = Rectangle{ 130, 0, 64, 31 };  // 0110 (E+S)
+        PipeTexturesInfo[7] = Rectangle{ 195, 0, 64, 35 };  // 0111 (E+S+W)
+        PipeTexturesInfo[8] = Rectangle{ 715, 0, 64, 42 };  // 1000 (N) – fallback
+        PipeTexturesInfo[9] = Rectangle{ 260, 0, 64, 35 };  // 1001 (N+W)
+        PipeTexturesInfo[10] = Rectangle{ 325, 0, 64, 35 };  // 1010 (N+S)
+        PipeTexturesInfo[11] = Rectangle{ 390, 0, 64, 35 };  // 1011 (N+S+W)
+        PipeTexturesInfo[12] = Rectangle{ 455, 0, 64, 35 };  // 1100 (N+E)
+        PipeTexturesInfo[13] = Rectangle{ 520, 0, 64, 35 };  // 1101 (N+E+W)
+        PipeTexturesInfo[14] = Rectangle{ 585, 0, 64, 35 };  // 1110 (N+E+S)
+        PipeTexturesInfo[15] = Rectangle{ 650, 0, 64, 35 };  // 1111
     }
 
     void load_ice_textures() {

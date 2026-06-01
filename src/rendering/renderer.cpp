@@ -3,7 +3,7 @@
 #include "TextureManager.h"
 #include "world/World.h"
 #include "utils/Math.h"
-
+#include "entities/Pipe.h"
 #include "raylib.h"
 
 #include <stdexcept>
@@ -121,17 +121,36 @@ void Renderer::RenderStructures(const Map& map) {
         const Tile& baseTile = map.getTile(s->getX(), s->getY());
         int n_raised = baseTile.getSlopeData()[0];
 
-        float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
+        if (s->isPipe()) {
+            const Pipe* p = static_cast<const Pipe*>(s);
+            int mask = p->getConnectionMask();
+            Rectangle sourceRec = txt_manager->PipeTexturesInfo[mask];
+            // fallback – nieznana maska dostaje pustą rurę (0000)
+            if (sourceRec.width == 0) {
+                sourceRec = txt_manager->PipeTexturesInfo[0];
+            }
 
-        float drawX = pos.x - txt_manager->solar_panels.width / 2.0f;
-        float drawY = tileBottomY - txt_manager->solar_panels.height + 1.0f;
+            float drawX = pos.x - sourceRec.width / 2.0f;
+            float drawY = pos.y
+                - baseTile.getLevel() * HEIGHT_OFFSET          // tylko poziom terenu
+                - (sourceRec.height - 31.0f);                  // wyrównanie do dołu kafelka (31 px)
 
-        DrawTexture(txt_manager->solar_panels, (int)drawX, (int)drawY, WHITE);
+            DrawTextureRec(txt_manager->pipe_atlas, sourceRec, { drawX, drawY }, WHITE);
+        }
+        else
+        {
+            float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
+            float drawX = pos.x - txt_manager->solar_panels.width / 2.0f;
+            float drawY = tileBottomY - txt_manager->solar_panels.height + 1.0f;
+            DrawTexture(txt_manager->solar_panels, (int)drawX, (int)drawY, WHITE);
+        }
     }
 }
 
 void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 	if (r_selectedTile.x < 0 || r_selectedTile.y < 0) return;
+
+
 
 	int startX = (int)r_selectedTile.x;
 	int startY = (int)r_selectedTile.y;
@@ -155,6 +174,7 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 
 	bool isSelectionOnly = (offset.x == 1 && offset.y == 1);
 	bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y);
+    bool isPipe = (offset.x == 1.0f && offset.y == 1.0f);
 
 	if (!isSelectionOnly) {
 		Vector2 pos = IsoToScreen(startX, startY, &map);

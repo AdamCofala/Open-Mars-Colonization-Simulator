@@ -1,7 +1,7 @@
 ﻿#include "InputManager.h"
-#include "InputManager.h"
 #include "rendering/Renderer.h"
 #include "structures/SolarPanel.h"
+#include "entities/Pipe.h"
 #include "player/Gui.h"
 #include "imgui.h"
 #include <algorithm>
@@ -30,6 +30,10 @@ void InputManager::update()
         SolarPanel panel(0, 0);
         m_selectedTileOffset = { (float)panel.getXOffset(), (float)panel.getYOffset() };
         m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
+    } else if (tool == Gui::SelectedTool::Build && selectedBuilding == 1) {
+        Pipe pipe(0, 0);
+        m_selectedTileOffset = { (float)pipe.getXOffset(), (float)pipe.getYOffset() };
+        m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
     } else if (tool != Gui::SelectedTool::Select) {
         m_selectedTileOffset = { 1, 1 };
         m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
@@ -56,8 +60,24 @@ void InputManager::update()
                 m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
             }
         }
-    }
+        else if (tool == Gui::SelectedTool::Build && selectedBuilding == 1) {
+            Pipe pipe(0, 0);
+            m_selectedTileOffset = { (float)pipe.getXOffset(), (float)pipe.getYOffset() };
+            m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
 
+            if (canInteractWithGame && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && m_selected_valid()) {
+                auto newPipe = std::make_unique<Pipe>(int(m_selectedTile.x), int(m_selectedTile.y));
+
+                size_t structuresBefore = m_map->getStructures().size();
+
+                // Użycie rozszerzonego canPlaceStructure dla rur
+                if (m_map->canPlaceStructure(int(m_selectedTile.x), int(m_selectedTile.y), (int)pipe.getXOffset(), (int)pipe.getYOffset(), true)) {
+                    m_map->addStructure(std::move(newPipe));
+                    // nie zmieniamy narzędzia, aby można było stawiać wiele rur
+                }
+            }
+        }
+    }
 }
 
 bool InputManager::m_selected_valid() {

@@ -48,16 +48,18 @@ void World::update(float dt) {
 
 		// Calculate total energy produced and accumulated by structures
 		for (auto& structure : allStructures) {
-			if (structure != nullptr) { // Dobra praktyka: upewniamy siê, ¿e wskaŸnik jest wa¿ny
+			if (structure != nullptr) { // Dobra praktyka: upewniamy si, e wskanik jest wany
 
-				// 1. Wywo³ujemy update przekazuj¹c dt ORAZ mapê (u¿ywamy -> zamiast .)
+				// 1. Wywoujemy update przekazujc dt ORAZ map (uywamy -> zamiast .)
 				structure->update(dt, *map);
 
-				// 2. Pobieramy dane z ekwipunku (równie¿ przez ->)
+				// 2. Pobieramy dane z ekwipunku (rwnie przez ->)
 				totalEnergy += structure->getInternalInventory().getAmount(MaterialType::ENERGY);
 				totalEnergyCapacity += structure->getInternalInventory().getMaxCapacity(MaterialType::ENERGY);
 			}
 		}
+
+		map->updateNetworks(dt); // Flow resources through pipes
 	}
 }
 

@@ -1,5 +1,6 @@
 #include "Pipe.h"
 
-Pipe::Pipe(int x, int y) {
-	init(x, y, "", 1, 1);
+Pipe::Pipe(int tx, int ty) {
+    // Domyœlna rura zajmuje 1x1 kafelka, tekstura "pipe"
+    init(tx, ty, "pipe", 1, 1);
 }

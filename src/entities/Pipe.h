@@ -5,7 +5,7 @@ class PipeNetwork;
 
 class Pipe : public Structure {
 private:
-    int connectionMask = 0;
+    int connectionMask = 3;   // bity: bit3=N, bit2=E, bit1=S, bit0=W
 
 public:
     PipeNetwork* network = nullptr;

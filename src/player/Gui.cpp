@@ -94,7 +94,7 @@ void Gui::render()
 			ImGui::EndMenu();
 		}
 
-        if (ImGui::BeginMenu("Speed")) {
+		if (ImGui::BeginMenu("Speed")) {
 			ImGui::Text("Game Speed");
 			ImGui::SetNextItemWidth(140.0f);
 			ImGui::SliderFloat("##speed", &m_gameSpeed, 0.5f, 4.0f, "x%.1f");
@@ -131,17 +131,17 @@ void Gui::render()
 		ImGui::EndMainMenuBar();
 	}
 
-    ImGui::SetNextWindowPos(ImVec2(screenWidth - 20.0f, 40.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+	ImGui::SetNextWindowPos(ImVec2(screenWidth - 20.0f, 40.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
 	ImGui::Begin("Build Menu", nullptr,
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 
-    ImGui::Text("Resources");
+	ImGui::Text("Resources");
 	ImGui::Separator();
 	if (m_world) {
-        float energyTotal = m_world->getTotalEnergy();
+		float energyTotal = m_world->getTotalEnergy();
 		float energyCapacity = m_world->getTotalEnergyCapacity();
 		float ratio = energyCapacity > 0.0f ? (energyTotal / energyCapacity) : 0.0f;
-        ImGui::Text("Energy: %.2f / %.2f", energyTotal, energyCapacity);
+		ImGui::Text("Energy: %.2f / %.2f", energyTotal, energyCapacity);
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.98f, 0.8f, 0.2f, 1.0f));
 		ImGui::ProgressBar(ratio, ImVec2(-1.0f, 0.0f));
 		ImGui::PopStyleColor();
@@ -158,9 +158,18 @@ void Gui::render()
 		m_selectedBuilding = 0;
 	}
 	ImGui::PopStyleColor();
+
+	bool pipeSelected = m_selectedTool == SelectedTool::Build && m_selectedBuilding == 1;
+	ImGui::PushStyleColor(ImGuiCol_Button, SelectedColor(pipeSelected));
+	if (ImGui::Button("Pipe", ImVec2(-1.0f, 0.0f))) {
+		m_selectedTool = SelectedTool::Build;
+		m_selectedBuilding = 1;
+	}
+	ImGui::PopStyleColor();
+
 	ImGui::End();
 
-    ImGui::SetNextWindowPos(ImVec2(screenWidth * 0.5f, screenHeight - 15.0f), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
+	ImGui::SetNextWindowPos(ImVec2(screenWidth * 0.5f, screenHeight - 15.0f), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
 	ImGui::Begin("Toolbar", nullptr,
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
 

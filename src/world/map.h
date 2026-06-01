@@ -29,8 +29,9 @@ public:
     int getHalfWidth() const;
     int getHalfHeight() const;
 
-    bool canPlaceStructure(int x, int y, int xOffset, int yOffset) const;
+    bool canPlaceStructure(int x, int y, int xOffset, int yOffset, bool isPipe = false) const;
 
     void addStructure(std::unique_ptr<Structure> structure);
+    void rebuildNetworks();
     void updateNetworks(float dt);
 };
