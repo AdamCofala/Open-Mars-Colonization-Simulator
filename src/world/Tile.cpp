@@ -32,6 +32,14 @@ void Tile::setOccupied(bool state) {
     occupied = state;
 }
 
+TileType Tile::getType() const {
+    return type;
+}
+
+void Tile::setType(TileType newType) {
+    type = newType;
+}
+
 int Tile::getX() const {
     return x;
 }

@@ -2,6 +2,7 @@
 #include "utils/PerlinNoise.h"
 #include <stdexcept>
 #include <random>
+#include <queue>
 
 void Map::init(int w, int h) {
 
@@ -138,6 +139,96 @@ void Map::generateTerrain() {
             tile.setSlopeData(slope);
         }
     }
+
+    // --- po obliczeniu poziomów i nachyleń kafli, ale przed końcem Map::generateTerrain() ---
+
+// Przygotuj siatkę poziomów dla szybkiego dostępu
+    std::vector<std::vector<int>> level(height, std::vector<int>(width));
+    for (int y = 0; y < height; ++y)
+        for (int x = 0; x < width; ++x)
+            level[y][x] = tiles[y * width + x].getLevel();
+
+    // Odwiedzone kafelki podczas zalewania kotlin
+    std::vector<std::vector<bool>> visited(height, std::vector<bool>(width, false));
+
+    // Losowy szum do decydowania, która kotlina stanie się lodowa
+    PerlinNoise lakeNoise(randInt(0, 10000));
+
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            if (visited[y][x] || !tiles[y * width + x].isFlat())
+                continue;
+
+            int basinLevel = level[y][x];
+
+            // BFS / flood fill w obrębie płaskich kafli o tym samym poziomie
+            std::vector<std::pair<int, int>> component;
+            std::queue<std::pair<int, int>> q;
+            q.push({ x, y });
+            visited[y][x] = true;
+
+            bool touchesEdge = false;
+            bool drains = false;   // czy istnieje sąsiad z niższym minH
+
+            while (!q.empty()) {
+                auto [cx, cy] = q.front(); q.pop();
+                component.push_back({ cx, cy });
+
+                // Czy skraj mapy?
+                if (cx == 0 || cx == width - 1 || cy == 0 || cy == height - 1)
+                    touchesEdge = true;
+
+                // Sprawdzamy 4 sąsiadów (góra/dół/lewo/prawo)
+                const int dx[] = { 0, 0, -1, 1 };
+                const int dy[] = { -1, 1, 0, 0 };
+
+                for (int i = 0; i < 4; ++i) {
+                    int nx = cx + dx[i];
+                    int ny = cy + dy[i];
+
+                    if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
+                        // Kafelek poza mapą – tak czy inaczej dotykamy krawędzi
+                        touchesEdge = true;
+                        continue;
+                    }
+
+                    if (level[ny][nx] < basinLevel) {
+                        // Znaleziono ujście – woda by odpłynęła
+                        drains = true;
+                    }
+                    else if (level[ny][nx] == basinLevel &&
+                        tiles[ny * width + nx].isFlat() &&
+                        !visited[ny][nx]) {
+                        visited[ny][nx] = true;
+                        q.push({ nx, ny });
+                    }
+                    // Pochyłe kafelki o tym samym minH ignorujemy – lód i tak
+                    // będziemy stawiać tylko na płaskich.
+                }
+            }
+
+            // Tylko zamknięte kotliny nie dotykające krawędzi, bez odpływu,
+            // o minimalnej wielkości (>= 2 kafelki) – możesz zmienić.
+            if (!touchesEdge && !drains && component.size() >= 2) {
+                // Obliczamy centroid kotliny i na jego podstawie szum decyduje o lodzie
+                float avgX = 0, avgY = 0;
+                for (auto& p : component) {
+                    avgX += p.first;
+                    avgY += p.second;
+                }
+                avgX /= component.size();
+                avgY /= component.size();
+
+                float n = lakeNoise.noise(avgX * 0.1f, avgY * 0.1f); // skala jak w oryginale
+                if (n > 0.5f) {   // próg – możesz dostosować (np. 0.4 – więcej jezior)
+                    for (auto& p : component) {
+                        tiles[p.second * width + p.first].setType(TileType::Ice);
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 

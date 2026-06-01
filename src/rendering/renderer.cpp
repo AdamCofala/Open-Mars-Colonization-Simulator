@@ -218,13 +218,23 @@ void Renderer::DrawIsoTile(const Tile& tile, Vector2 pos, Color tint) const {
     auto slope_vec = tile.getSlopeData();
     int n_raised = slope_vec[0];
 
-    const Rectangle& rect = txt_manager->map_slope_to_texture(slope_vec.data());
+    Rectangle rect;
+    Texture2D atlas;
+
+    if (tile.getType() == TileType::Ice) {
+        rect = txt_manager->map_ice_to_texture(slope_vec.data());
+        atlas = txt_manager->ice_atlas;
+    } else {
+        rect = txt_manager->map_slope_to_texture(slope_vec.data());
+        atlas = txt_manager->tile_atlas;
+    }
+
     float drawX = pos.x - rect.width / 2.0f;
     float drawY = pos.y
         - n_raised * HEIGHT_OFFSET
         - tile.getLevel() * HEIGHT_OFFSET;
 
-    DrawTextureRec(txt_manager->tile_atlas, rect, { drawX, drawY }, tint);
+    DrawTextureRec(atlas, rect, { drawX, drawY }, tint);
 }
 
 void Renderer::drawCursor() const {

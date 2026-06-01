@@ -14,6 +14,9 @@ public:
     std::array<Rectangle, 16> PipeTexturesInfo;
     Texture2D pipe_atlas = LoadTexture(RESOURCES_PATH "pipe_atlas.png");
 
+    std::array<Rectangle, 16> IceTexturesInfo;
+    Texture2D ice_atlas = LoadTexture(RESOURCES_PATH "ice_atlas.png");
+
     std::unordered_map<std::string, Rectangle> StuctureTexturesInfo;
     Texture2D structure_atlas = LoadTexture(RESOURCES_PATH "structure_atlas.png");
     Texture2D solar_panels = LoadTexture(RESOURCES_PATH "solar_panels.png");
@@ -23,6 +26,7 @@ private:
     void init() {
 		load_tiles_textures();
         load_pipes_textures();
+        load_ice_textures();
     }
 
     void load_tiles_textures() {
@@ -68,9 +72,15 @@ private:
         PipeTexturesInfo[15] = Rectangle{650, 0, 64, 35}; // 1111
     }
 
+    void load_ice_textures() {
+        IceTexturesInfo.fill(Rectangle{0, 0, 0, 0});
+        IceTexturesInfo[0] = Rectangle{0, 0, 64, 31};  // 0000
+    }
+
     void UnloadTextures() {
         UnloadTexture(tile_atlas);
         UnloadTexture(pipe_atlas);
+        UnloadTexture(ice_atlas);
         UnloadTexture(structure_atlas);
         UnloadTexture(solar_panels);
         UnloadTexture(cursor);
@@ -94,6 +104,17 @@ public:
             data[3];
 
         return PipeTexturesInfo[index];
+    }
+
+    const Rectangle& map_ice_to_texture(int data[4]) const
+    {
+        int index =
+            (data[0] << 3) |
+            (data[1] << 2) |
+            (data[2] << 1) |
+            data[3];
+
+        return IceTexturesInfo[index];
     }
 
     const Rectangle& map_slope_to_texture(int data[4]) const
