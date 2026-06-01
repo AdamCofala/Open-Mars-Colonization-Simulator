@@ -302,11 +302,11 @@ void Map::rebuildNetworks() {
         bool slope1001 = (slope[0] == 1 && slope[1] == 0 && slope[2] == 0 && slope[3] == 1);
 
         if (slope1100) {
-            p->setConnectionMask(0); // 0000
+            p->setConnectionMask(0);
             continue;
         }
         else if (slope1001) {
-            p->setConnectionMask(1); // 0001 (tylko W)
+            p->setConnectionMask(1);
             continue;
         }
 
@@ -334,10 +334,9 @@ void Map::rebuildNetworks() {
 
         int popcnt = (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1) + ((mask >> 3) & 1);
         if (popcnt == 0) {
-            mask = 0b0101; // Domyślnie łączymy z N i E, ale to tylko estetyka, nie ma wpływu na działanie sieci
-		}
-        else if (popcnt == 1)
-        {
+            mask = 3; // izolowana rura na płaskim -> 0011
+        }
+        else if (popcnt == 1) {
             for (int i = 0; i < 4; ++i) {
                 if (mask & (8 >> i)) {
                     mask |= (8 >> ((i + 2) % 4));

@@ -22,7 +22,8 @@ void InputManager::update()
         m_selectedTile = { -1, -1 };
         m_selectedTileOffset = { 1, 1 };
         m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
-    } else {
+    }
+    else {
         updateTileSelection();
     }
 
@@ -30,11 +31,13 @@ void InputManager::update()
         SolarPanel panel(0, 0);
         m_selectedTileOffset = { (float)panel.getXOffset(), (float)panel.getYOffset() };
         m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
-    } else if (tool == Gui::SelectedTool::Build && selectedBuilding == 1) {
+    }
+    else if (tool == Gui::SelectedTool::Build && selectedBuilding == 1) {
         Pipe pipe(0, 0);
         m_selectedTileOffset = { (float)pipe.getXOffset(), (float)pipe.getYOffset() };
         m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
-    } else if (tool != Gui::SelectedTool::Select) {
+    }
+    else if (tool != Gui::SelectedTool::Select) {
         m_selectedTileOffset = { 1, 1 };
         m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
     }
@@ -43,38 +46,41 @@ void InputManager::update()
 
     if (canInteractWithGame && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && m_selected_valid()) {
         if (tool == Gui::SelectedTool::Build && selectedBuilding == 0) {
+            // Solar panel
+            SolarPanel tempPanel(0, 0);
+            int sx = (int)m_selectedTile.x;
+            int sy = (int)m_selectedTile.y;
+            int xOff = tempPanel.getXOffset();
+            int yOff = tempPanel.getYOffset();
 
-            auto newBuilding = std::make_unique<SolarPanel>(int(m_selectedTile.x), int(m_selectedTile.y));
+            if (m_map->canPlaceStructure(sx, sy, xOff, yOff, false)) { // false = nie rura
+                auto newBuilding = std::make_unique<SolarPanel>(sx, sy);
+                m_map->addStructure(std::move(newBuilding));
 
-            size_t structuresBefore = m_map->getStructures().size();
-
-            m_map->addStructure(std::move(newBuilding));
-
-            if (m_map->getStructures().size() > structuresBefore) {
                 if (m_gui) {
                     m_gui->setSelectedTool(Gui::SelectedTool::Select);
                 }
-
                 m_selectedTile = { -1, -1 };
                 m_selectedTileOffset = { 1, 1 };
                 m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
             }
         }
         else if (tool == Gui::SelectedTool::Build && selectedBuilding == 1) {
-            Pipe pipe(0, 0);
-            m_selectedTileOffset = { (float)pipe.getXOffset(), (float)pipe.getYOffset() };
-            m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
+            // Pipe
+            Pipe tempPipe(0, 0);
+            int sx = (int)m_selectedTile.x;
+            int sy = (int)m_selectedTile.y;
+            int xOff = tempPipe.getXOffset();
+            int yOff = tempPipe.getYOffset();
 
-            if (canInteractWithGame && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && m_selected_valid()) {
-                auto newPipe = std::make_unique<Pipe>(int(m_selectedTile.x), int(m_selectedTile.y));
+            if (m_map->canPlaceStructure(sx, sy, xOff, yOff, true)) { // true = rura
+                auto newPipe = std::make_unique<Pipe>(sx, sy);
+                m_map->addStructure(std::move(newPipe));
 
-                size_t structuresBefore = m_map->getStructures().size();
-
-                // Użycie rozszerzonego canPlaceStructure dla rur
-                if (m_map->canPlaceStructure(int(m_selectedTile.x), int(m_selectedTile.y), (int)pipe.getXOffset(), (int)pipe.getYOffset(), true)) {
-                    m_map->addStructure(std::move(newPipe));
-                    // nie zmieniamy narzędzia, aby można było stawiać wiele rur
-                }
+                // Nie zmieniamy narzędzia, aby móc stawiać wiele rur
+                m_selectedTile = { -1, -1 };
+                m_selectedTileOffset = { 1, 1 };
+                m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
             }
         }
     }
@@ -84,7 +90,7 @@ bool InputManager::m_selected_valid() {
     return (m_selectedTile.x != -1 && m_selectedTile.y != -1);
 }
 
-void InputManager::updateTileSelection(){
+void InputManager::updateTileSelection() {
     if (!m_map || !m_renderer) return;
 
     Vector2 mouseWorld = GetScreenToWorld2D(GetMousePosition(), m_renderer->getGameCamera().getCamera());
@@ -93,11 +99,8 @@ void InputManager::updateTileSelection(){
     int width = m_map->getWidth();
     int height = m_map->getHeight();
 
-    // Get visible tile bounds (grid coords) from the renderer to avoid duplicating logic
     auto [gridMinX, gridMaxX, gridMinY, gridMaxY] = m_renderer->getVisibleTileBounds(*m_map);
 
-    // Iterate in reverse drawing order (decreasing Y, decreasing X)
-    // so we can hit the "top-most" tile first
     for (int y = gridMaxY; y >= gridMinY; --y) {
         for (int x = gridMaxX; x >= gridMinX; --x) {
             if (x < 0 || x >= width || y < 0 || y >= height) continue;
@@ -130,7 +133,6 @@ void InputManager::updateTileSelection(){
             }
         }
     }
-
 }
 
 Vector2 InputManager::getSelectedTile() const
