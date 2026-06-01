@@ -2,7 +2,7 @@
 #include "raylib.h"
 #include "world/World.h"
 #include "rendering/Renderer.h"
-#include "entities/MaterialType.h"
+#include "entities/Enums.h"
 
 namespace {
 	ImVec4 SelectedColor(bool selected) {

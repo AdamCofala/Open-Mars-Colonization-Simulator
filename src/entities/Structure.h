@@ -2,7 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include "Inventory.h"
-#include "MaterialType.h"
+#include "Enums.h"
 
 // Stuctures need to output / input ratio, u can't just update global inventory
 // like that, you need to have some internal state that tracks how much resources the
@@ -16,7 +16,8 @@ class Structure {
 protected:
     std::unordered_map<MaterialType, int> productionRates; // How much of each resource the structure produces per internal time unit
     std::unordered_map<MaterialType, int> consumeRates;
-    std::vector<Structure*> connectedStructures;
+    std::vector<StructurePort> m_ports;
+
     void setInternalCapacity(MaterialType type, float capacity);
 private:
     int x;
@@ -40,8 +41,9 @@ public:
     int getYOffset() const { return yOffset; }
 
     const Inventory& getInternalInventory() const;
+	Inventory& getInternalInventory() { return internalInventory; }
 
-    void addConnection(Structure* neighbor);
-    void removeConnection(Structure* neighbor);
-    const std::vector<Structure*>& getConnections() const;
+    virtual bool isPipe() const;
+    const std::vector<StructurePort>& getPorts() const;
+    PortType getPortAtTile(int worldX, int worldY, Direction edgeDir) const;
 };

@@ -58,24 +58,22 @@ int Structure::getY() const {
     return y;
 }
 
-void Structure::addConnection(Structure* neighbor)
-{
-    if (std::find(connectedStructures.begin(), connectedStructures.end(), neighbor) == connectedStructures.end()) 
-    {
-        connectedStructures.push_back(neighbor);
-    }
+bool Structure::isPipe() const {
+    return false;
 }
 
-void Structure::removeConnection(Structure* neighbor)
-{
-    auto it = std::find(connectedStructures.begin(), connectedStructures.end(), neighbor);
-    if (it != connectedStructures.end()) 
-    {
-        connectedStructures.erase(it);
-    }
+const std::vector<StructurePort>& Structure::getPorts() const {
+    return m_ports;
 }
 
-const std::vector<Structure*>& Structure::getConnections() const 
-{
-    return connectedStructures;
+PortType Structure::getPortAtTile(int worldX, int worldY, Direction edgeDir) const {
+    for (const auto& port : m_ports) {
+        int portWorldX = x + port.offsetX;
+        int portWorldY = y + port.offsetY;
+
+        if (portWorldX == worldX && portWorldY == worldY && port.dir == edgeDir) {
+            return port.type;
+        }
+    }
+    return PortType::NONE;
 }

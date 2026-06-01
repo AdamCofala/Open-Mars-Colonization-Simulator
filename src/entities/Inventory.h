@@ -1,6 +1,6 @@
 #pragma once
 #include <unordered_map>
-#include "MaterialType.h"
+#include "Enums.h"
 
 class Inventory {
 private:

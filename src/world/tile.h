@@ -12,8 +12,8 @@ enum class TileType {
 
 class Tile {
 private:
-    int x;
-    int y;
+    int x = 0;
+    int y = 0;
     Structure* structure = nullptr;
     bool occupied;
     std::string baseTextureId;

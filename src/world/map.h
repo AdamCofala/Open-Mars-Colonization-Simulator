@@ -3,6 +3,8 @@
 #include <memory>
 #include "Tile.h"
 #include "entities/Structure.h"
+#include "../entities/Pipe.h"
+#include "../entities/PipeNetwork.h"
 
 class Map {
 private:
@@ -12,6 +14,7 @@ private:
     std::vector<Tile> tiles;
 
     std::vector<std::unique_ptr<Structure>> structures;
+    std::vector<std::unique_ptr<PipeNetwork>> allNetworks;
 
 public:
     void init(int w, int h);
@@ -29,4 +32,5 @@ public:
     bool canPlaceStructure(int x, int y, int xOffset, int yOffset) const;
 
     void addStructure(std::unique_ptr<Structure> structure);
+    void updateNetworks(float dt);
 };

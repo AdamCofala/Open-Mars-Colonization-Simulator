@@ -256,54 +256,90 @@ bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset) const {
 	return true;
 }
 
-void Map::addStructure(std::unique_ptr<Structure> structure)
-{
-    if (!structure) {
-        return;
-    }
+void Map::addStructure(std::unique_ptr<Structure> structure) {
+    if (!structure) return;
 
-    int x = structure->getX();
-    int y = structure->getY();
-    int xOffset = structure->getXOffset();
-    int yOffset = structure->getYOffset();
+    Structure* rawPtr = structure.get();
+    int x = rawPtr->getX();
+    int y = rawPtr->getY();
 
-    if (!canPlaceStructure(x, y, xOffset, yOffset)) {
-        return;
-    }
-
-    Structure* rawStructurePtr = structure.get();
-
-    for (int dy = 0; dy < yOffset; ++dy) {
-        for (int dx = 0; dx < xOffset; ++dx) {
-            int tileX = x - dx;
-            int tileY = y - dy;
-
-            Tile& tile = getTile(tileX, tileY);
-            tile.setOccupied(true);
-            tile.setStructure(rawStructurePtr);
+    for (int row = 0; row < rawPtr->getYOffset(); ++row) {
+        for (int col = 0; col < rawPtr->getXOffset(); ++col) {
+            getTile(x + col, y + row).setStructure(rawPtr);
         }
     }
 
-    for (int dy = 0; dy < yOffset; ++dy) {
-        for (int dx = 0; dx < xOffset; ++dx) {
-            int tileX = x - dx;
-            int tileY = y - dy;
+    int directionsX[] = { 1,  0, -1,  0 };
+    int directionsY[] = { 0,  1,  0, -1 };
 
-            int directionsX[] = { 0, 0, -1, 1 };
-            int directionsY[] = { -1, 1, 0, 0 };
+    if (rawPtr->isPipe()) {
+        Pipe* rawPipe = static_cast<Pipe*>(rawPtr);
 
-            for (int i = 0; i < 4; ++i) {
-                int nx = tileX + directionsX[i];
-                int ny = tileY + directionsY[i];
+        auto newNet = std::make_unique<PipeNetwork>();
+        rawPipe->network = newNet.get();
+        newNet->pipes.push_back(rawPipe);
+        allNetworks.push_back(std::move(newNet));
 
-                if (nx >= 0 && nx < static_cast<int>(width) &&
-                    ny >= 0 && ny < static_cast<int>(height)) {
+        int currentMask = 0;
 
-                    Structure* neighbor = getTile(nx, ny).getStructure();
+        for (int i = 0; i < 4; ++i) {
+            int nx = x + directionsX[i];
+            int ny = y + directionsY[i];
 
-                    if (neighbor != nullptr && neighbor != rawStructurePtr) {
-                        rawStructurePtr->addConnection(neighbor);
-                        neighbor->addConnection(rawStructurePtr);
+            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                Structure* neighbor = getTile(nx, ny).getStructure();
+
+                if (neighbor != nullptr && neighbor != rawPipe) {
+                    Direction myDir = static_cast<Direction>(i);
+                    Direction hisDir = static_cast<Direction>((i + 2) % 4);
+
+                    if (neighbor->isPipe()) {
+                        Pipe* neighborPipe = static_cast<Pipe*>(neighbor);
+
+                        currentMask |= (1 << i);
+                        neighborPipe->setConnectionMask(neighborPipe->getConnectionMask() | (1 << hisDir));
+
+                        rawPipe->network->mergeWith(neighborPipe->network);
+                    }
+                    else {
+                        PortType tilePort = neighbor->getPortAtTile(nx, ny, hisDir);
+
+                        if (tilePort == PortType::OUTPUT) {
+                            rawPipe->network->producers.push_back(neighbor);
+                            currentMask |= (1 << i);
+                        }
+                        else if (tilePort == PortType::INPUT) {
+                            rawPipe->network->consumers.push_back(neighbor);
+                            currentMask |= (1 << i);
+                        }
+                    }
+                }
+            }
+        }
+        rawPipe->setConnectionMask(currentMask);
+    }
+    else {
+        for (const auto& port : rawPtr->getPorts()) {
+            int portX = x + port.offsetX;
+            int portY = y + port.offsetY;
+
+            int targetX = portX + directionsX[static_cast<int>(port.dir)];
+            int targetY = portY + directionsY[static_cast<int>(port.dir)];
+
+            if (targetX >= 0 && targetX < width && targetY >= 0 && targetY < height) {
+                Structure* neighbor = getTile(targetX, targetY).getStructure();
+
+                if (neighbor != nullptr && neighbor->isPipe()) {
+                    Pipe* neighborPipe = static_cast<Pipe*>(neighbor);
+                    Direction hisDir = static_cast<Direction>((static_cast<int>(port.dir) + 2) % 4);
+
+                    neighborPipe->setConnectionMask(neighborPipe->getConnectionMask() | (1 << hisDir));
+
+                    if (port.type == PortType::OUTPUT) {
+                        neighborPipe->network->producers.push_back(rawPtr);
+                    }
+                    else if (port.type == PortType::INPUT) {
+                        neighborPipe->network->consumers.push_back(rawPtr);
                     }
                 }
             }
@@ -311,4 +347,10 @@ void Map::addStructure(std::unique_ptr<Structure> structure)
     }
 
     structures.push_back(std::move(structure));
+}
+
+void Map::updateNetworks(float dt) {
+    for (auto& net : allNetworks) {
+        if (net) net->updateNetwork(dt);
+    }
 }

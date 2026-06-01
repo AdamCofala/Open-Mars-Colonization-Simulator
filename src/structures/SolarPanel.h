@@ -1,6 +1,6 @@
 #pragma once
 #include "entities/Structure.h"
-#include "entities/MaterialType.h"
+#include "entities/Enums.h"
 
 class SolarPanel : public Structure {
 	std::string textureId = "solar_panels";
