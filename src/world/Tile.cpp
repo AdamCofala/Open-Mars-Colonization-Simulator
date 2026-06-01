@@ -75,14 +75,11 @@ void Tile::setSlopeData(int newSlopeData[4]) {
     }
 }
 
-void Tile::setStructure(Structure* newStructure) {
-    structure = newStructure;
-}
-
 Structure* Tile::getStructure() {
     return structure;
 }
 
-const Structure* Tile::getStructure() const {
-    return structure;
+void Tile::setStructure(Structure* newStructure) {
+    structure = newStructure;
+	setOccupied(newStructure != nullptr);
 }

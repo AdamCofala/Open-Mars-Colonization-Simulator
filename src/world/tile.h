@@ -43,5 +43,4 @@ public:
 
     void setStructure(Structure* newStructure);
     Structure* getStructure();
-    const Structure* getStructure() const;
 };

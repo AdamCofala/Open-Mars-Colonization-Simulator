@@ -5,16 +5,12 @@
 #include <queue>
 
 void Map::init(int w, int h) {
-
     if (w <= 0 || h <= 0) {
         throw std::invalid_argument("Map dimensions must be positive integers.");
     }
-
     width = w;
     height = h;
-
     tiles.resize(width * height);
-
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             int i = y * width + x;
@@ -22,7 +18,6 @@ void Map::init(int w, int h) {
         }
     }
 }
-
 
 static bool invalidTile(const std::vector<std::vector<int>>& vertex, int x, int y) {
     int vN = vertex[y][x];
@@ -33,7 +28,6 @@ static bool invalidTile(const std::vector<std::vector<int>>& vertex, int x, int 
     int maxH = std::max({ vN, vE, vS, vW });
     return (maxH - minH > 1);
 }
-
 
 static void flattenTile(std::vector<std::vector<int>>& vertex, int x, int y) {
     int& vN = vertex[y][x];
@@ -48,7 +42,6 @@ static void enforceValidTerrain(std::vector<std::vector<int>>& vertex, int width
     constexpr int MAX_ITER = 100;
     for (int iter = 0; iter < MAX_ITER; ++iter) {
         bool changed = false;
-
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 if (invalidTile(vertex, x, y)) {
@@ -69,21 +62,17 @@ static int randInt(int min, int max) {
 
 void Map::generateTerrain() {
     PerlinNoise perlin(randInt(0, 10000));
-
     const float scale = 0.05f;
     const float warpStrength = 6.0f;
     const int maxHeight = 10;
 
     std::vector<std::vector<int>> vertex(height + 1, std::vector<int>(width + 1));
-
     for (int y = 0; y <= height; y++) {
         for (int x = 0; x <= width; x++) {
             float nx = perlin.noise(x * scale, y * scale);
             float ny = perlin.noise((x + 1000) * scale, (y + 1000) * scale);
-
             float warped = perlin.noise((x + nx * warpStrength) * scale,
                 (y + ny * warpStrength) * scale);
-
             warped = pow(warped, 3.0f);
             vertex[y][x] = (int)(warped * maxHeight);
         }
@@ -111,11 +100,9 @@ void Map::generateTerrain() {
             int vE = vertex[y][x + 1];
             int vS = vertex[y + 1][x + 1];
             int vW = vertex[y + 1][x];
-
             int minH = std::min({ vN, vE, vS, vW });
             Tile& tile = tiles[y * width + x];
             tile.setLevel(minH);
-
             int slope[4] = { vN > minH, vE > minH, vS > minH, vW > minH };
             tile.setSlopeData(slope);
         }
@@ -124,16 +111,13 @@ void Map::generateTerrain() {
     const float lakeNoiseScale = 0.1f;
     const float lakeNoiseThreshold = 0.5f;
     const int   minBasinSize = 2;
-
     std::vector<std::vector<int>>  level(height, std::vector<int>(width));
     std::vector<std::vector<bool>> visited(height, std::vector<bool>(width, false));
-
     for (int y = 0; y < height; ++y)
         for (int x = 0; x < width; ++x)
             level[y][x] = tiles[y * width + x].getLevel();
 
     PerlinNoise lakeNoise(randInt(0, 10000));
-
     const int dx[] = { 0, 0, -1, 1 };
     const int dy[] = { -1, 1,  0, 0 };
 
@@ -141,33 +125,26 @@ void Map::generateTerrain() {
         for (int x = 0; x < width; ++x) {
             if (visited[y][x] || !tiles[y * width + x].isFlat())
                 continue;
-
             const int basinLevel = level[y][x];
-
             std::vector<std::pair<int, int>> basin;
             std::queue<std::pair<int, int>> q;
             q.push({ x, y });
             visited[y][x] = true;
-
             bool touchesEdge = false;
             bool hasOutlet = false;
 
             while (!q.empty()) {
                 auto [cx, cy] = q.front(); q.pop();
                 basin.push_back({ cx, cy });
-
                 if (cx == 0 || cx == width - 1 || cy == 0 || cy == height - 1)
                     touchesEdge = true;
-
                 for (int i = 0; i < 4; ++i) {
                     int nx = cx + dx[i];
                     int ny = cy + dy[i];
-
                     if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
                         touchesEdge = true;
                         continue;
                     }
-
                     if (level[ny][nx] < basinLevel) {
                         hasOutlet = true;
                     }
@@ -179,7 +156,6 @@ void Map::generateTerrain() {
                     }
                 }
             }
-
             if (touchesEdge || hasOutlet || (int)basin.size() < minBasinSize)
                 continue;
 
@@ -187,7 +163,6 @@ void Map::generateTerrain() {
             for (auto& [bx, by] : basin) { avgX += bx; avgY += by; }
             avgX /= basin.size();
             avgY /= basin.size();
-
             if (lakeNoise.noise(avgX * lakeNoiseScale, avgY * lakeNoiseScale) > lakeNoiseThreshold) {
                 for (auto& [bx, by] : basin)
                     tiles[by * width + bx].setType(TileType::Ice);
@@ -196,49 +171,31 @@ void Map::generateTerrain() {
     }
 }
 
-Tile& Map::getTile(int x, int y) const
-{
+Tile& Map::getTile(int x, int y) const {
     if (x < 0 || x >= width || y < 0 || y >= height) {
         throw std::out_of_range("Tile coordinates out of range.");
     }
     return const_cast<Tile&>(tiles[y * width + x]);
 }
 
-std::vector<std::unique_ptr<Structure>>& Map::getStructures()
-{
+std::vector<std::unique_ptr<Structure>>& Map::getStructures() {
     return structures;
 }
 
-const std::vector<std::unique_ptr<Structure>>& Map::getStructures() const
-{
+const std::vector<std::unique_ptr<Structure>>& Map::getStructures() const {
     return structures;
 }
 
-int Map::getWidth() const
-{
-    return width;
-}
-
-int Map::getHeight() const
-{
-    return height;
-}
-
-int Map::getHalfWidth() const
-{
-    return width / 2;
-}
-
-int Map::getHalfHeight() const
-{
-    return height / 2;
-}
+int Map::getWidth() const { return width; }
+int Map::getHeight() const { return height; }
+int Map::getHalfWidth() const { return width / 2; }
+int Map::getHalfHeight() const { return height / 2; }
 
 bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset, bool isPipe) const {
     for (int dy = 0; dy < yOffset; ++dy) {
         for (int dx = 0; dx < xOffset; ++dx) {
-            int tileX = x - dx;
-            int tileY = y - dy;
+            int tileX = x - dx;   // w lewo (oryginalny kierunek)
+            int tileY = y - dy;   // w górę
             if (tileX < 0 || tileX >= width || tileY < 0 || tileY >= height) {
                 return false;
             }
@@ -265,15 +222,17 @@ void Map::addStructure(std::unique_ptr<Structure> structure) {
     Structure* rawPtr = structure.get();
     int x = rawPtr->getX();
     int y = rawPtr->getY();
+    int xOff = rawPtr->getXOffset();
+    int yOff = rawPtr->getYOffset();
 
-    for (int row = 0; row < rawPtr->getYOffset(); ++row) {
-        for (int col = 0; col < rawPtr->getXOffset(); ++col) {
-            getTile(x + col, y + row).setStructure(rawPtr);
+    // Zajmujemy kafelki w lewo i w górę (oryginalny kierunek)
+    for (int row = 0; row < yOff; ++row) {
+        for (int col = 0; col < xOff; ++col) {
+            getTile(x - col, y - row).setStructure(rawPtr);
         }
     }
 
     structures.push_back(std::move(structure));
-
     rebuildNetworks();
 }
 
@@ -314,7 +273,6 @@ void Map::rebuildNetworks() {
         for (int i = 0; i < 4; ++i) {
             int nx = px + directionsX[i];
             int ny = py + directionsY[i];
-
             if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
                 Structure* neighbor = getTile(nx, ny).getStructure();
                 if (neighbor) {
@@ -348,6 +306,7 @@ void Map::rebuildNetworks() {
         p->setConnectionMask(mask);
     }
 
+    // reszta sieci bez zmian...
     for (Pipe* p : allPipes) {
         if (p->network != nullptr) continue;
 
