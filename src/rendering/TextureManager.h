@@ -17,9 +17,10 @@ public:
     std::array<Rectangle, 16> IceTexturesInfo;
     Texture2D ice_atlas = LoadTexture(RESOURCES_PATH "ice_atlas.png");
 
-    std::unordered_map<std::string, Rectangle> StuctureTexturesInfo;
-    Texture2D structure_atlas = LoadTexture(RESOURCES_PATH "structure_atlas.png");
-    Texture2D solar_panels = LoadTexture(RESOURCES_PATH "solar_panels.png");
+    std::unordered_map<std::string, Texture2D> StuctureTexturesInfo{
+        {"solar_panels", LoadTexture(RESOURCES_PATH "solar_panels.png")}
+    };
+    //Texture2D solar_panels = LoadTexture(RESOURCES_PATH "solar_panels.png");
     Texture2D cursor = LoadTexture(RESOURCES_PATH "cursor.png");
 
 private:
@@ -83,9 +84,11 @@ private:
         UnloadTexture(tile_atlas);
         UnloadTexture(pipe_atlas);
         UnloadTexture(ice_atlas);
-        UnloadTexture(structure_atlas);
-        UnloadTexture(solar_panels);
         UnloadTexture(cursor);
+
+        for (const auto& pair : StuctureTexturesInfo) {
+            UnloadTexture(pair.second);
+		}
     }
 
 
