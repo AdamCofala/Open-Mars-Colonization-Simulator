@@ -186,7 +186,7 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 		float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
 
 		float drawX = pos.x - txt_manager->StuctureTexturesInfo["solar_panels"].width / 2.0f;
-		float drawY = tileBottomY - txt_manager->StuctureTexturesInfo["solar_panels"].height + 1.0f;
+		float drawY = tileBottomY - txt_manager->StuctureTexturesInfo["solar_panels"].height;
 
 		Color structureTint = valid_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
 		DrawTexture(txt_manager->StuctureTexturesInfo["solar_panels"], (int)drawX, (int)drawY, structureTint);
