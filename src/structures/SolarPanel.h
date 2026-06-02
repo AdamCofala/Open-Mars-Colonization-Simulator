@@ -3,12 +3,10 @@
 #include "entities/Enums.h"
 
 class SolarPanel : public Structure {
-    std::string textureId = "solar_panels";
 public:
     SolarPanel(int x, int y) {
         productionRates[MaterialType::ENERGY] = 1;
-
-        init(x, y, "", 3, 3);
+        init(x, y, "solar_panels", 3, 3 );
         setInternalCapacity(MaterialType::ENERGY, 500.0f);
 
         StructurePort outputPort;
@@ -22,6 +20,7 @@ public:
 
         m_ports.push_back(outputPort);
     }
+
 
     void update(float dt, Map& map) override {
         Structure::update(dt, map);

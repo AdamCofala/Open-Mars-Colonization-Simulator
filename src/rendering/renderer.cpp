@@ -139,10 +139,11 @@ void Renderer::RenderStructures(const Map& map) {
         }
         else
         {
-            float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
-            float drawX = pos.x - txt_manager->solar_panels.width / 2.0f;
-            float drawY = tileBottomY - txt_manager->solar_panels.height + 1.0f;
-            DrawTexture(txt_manager->solar_panels, (int)drawX, (int)drawY, WHITE);
+			Texture2D sourceRec = txt_manager->StuctureTexturesInfo[s->getTextureId()];
+			float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
+			float drawX = pos.x - sourceRec.width / 2.0f;
+			float drawY = tileBottomY - sourceRec.height;
+			DrawTexture(sourceRec, (int)drawX, (int)drawY, WHITE);
         }
     }
 }
@@ -184,11 +185,11 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 		// Calculate the bottom point of the structure based on the tile elevation
 		float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
 
-		float drawX = pos.x - txt_manager->solar_panels.width / 2.0f;
-		float drawY = tileBottomY - txt_manager->solar_panels.height + 1.0f;
+		float drawX = pos.x - txt_manager->StuctureTexturesInfo["solar_panels"].width / 2.0f;
+		float drawY = tileBottomY - txt_manager->StuctureTexturesInfo["solar_panels"].height;
 
 		Color structureTint = valid_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
-		DrawTexture(txt_manager->solar_panels, (int)drawX, (int)drawY, structureTint);
+		DrawTexture(txt_manager->StuctureTexturesInfo["solar_panels"], (int)drawX, (int)drawY, structureTint);
 	}
 }
 
