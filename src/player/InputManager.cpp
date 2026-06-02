@@ -1,6 +1,7 @@
 ﻿#include "InputManager.h"
 #include "rendering/Renderer.h"
 #include "structures/SolarPanel.h"
+#include "structures/IceMelter.h"
 #include "entities/Pipe.h"
 #include "player/Gui.h"
 #include "imgui.h"
@@ -35,6 +36,11 @@ void InputManager::update()
     else if (tool == Gui::SelectedTool::Build && selectedBuilding == 1) {
         Pipe pipe(0, 0);
         m_selectedTileOffset = { (float)pipe.getXOffset(), (float)pipe.getYOffset() };
+        m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
+    }
+    else if (tool == Gui::SelectedTool::Build && selectedBuilding == 2) {
+        IceMelter melter(0, 0);
+        m_selectedTileOffset = { (float)melter.getXOffset(), (float)melter.getYOffset() };
         m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
     }
     else if (tool != Gui::SelectedTool::Select) {
@@ -78,6 +84,25 @@ void InputManager::update()
                 m_map->addStructure(std::move(newPipe));
 
                 // Nie zmieniamy narzędzia, aby móc stawiać wiele rur
+                m_selectedTile = { -1, -1 };
+                m_selectedTileOffset = { 1, 1 };
+                m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
+            }
+        }
+        else if (tool == Gui::SelectedTool::Build && selectedBuilding == 2) {
+            IceMelter tempMelter(0, 0);
+            int sx = (int)m_selectedTile.x;
+            int sy = (int)m_selectedTile.y;
+            int xOff = tempMelter.getXOffset();
+            int yOff = tempMelter.getYOffset();
+
+            if (m_map->canPlaceStructure(sx, sy, xOff, yOff, false)) {
+                auto newMelter = std::make_unique<IceMelter>(sx, sy);
+                m_map->addStructure(std::move(newMelter));
+
+                if (m_gui) {
+                    m_gui->setSelectedTool(Gui::SelectedTool::Select);
+                }
                 m_selectedTile = { -1, -1 };
                 m_selectedTileOffset = { 1, 1 };
                 m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);

@@ -43,8 +43,11 @@ void World::update(float dt) {
 
 	if (map != nullptr) {
 		auto& allStructures = map->getStructures();
+
 		totalEnergy = 0.0f;
 		totalEnergyCapacity = 0.0f;
+		totalWater = 0.0f;
+		totalWaterCapacity = 0.0f;
 
 		// Calculate total energy produced and accumulated by structures
 		for (auto& structure : allStructures) {
@@ -56,6 +59,9 @@ void World::update(float dt) {
 				// 2. Pobieramy dane z ekwipunku (rwnie przez ->)
 				totalEnergy += structure->getInternalInventory().getAmount(MaterialType::ENERGY);
 				totalEnergyCapacity += structure->getInternalInventory().getMaxCapacity(MaterialType::ENERGY);
+
+				totalWater += structure->getInternalInventory().getAmount(MaterialType::WATER);
+				totalWaterCapacity += structure->getInternalInventory().getMaxCapacity(MaterialType::WATER);
 			}
 		}
 

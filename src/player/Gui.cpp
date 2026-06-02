@@ -145,6 +145,16 @@ void Gui::render()
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.98f, 0.8f, 0.2f, 1.0f));
 		ImGui::ProgressBar(ratio, ImVec2(-1.0f, 0.0f));
 		ImGui::PopStyleColor();
+
+		ImGui::Spacing();
+		float waterTotal = m_world->getTotalWater();
+		float waterCapacity = m_world->getTotalWaterCapacity();
+		float waterRatio = waterCapacity > 0.0f ? (waterTotal / waterCapacity) : 0.0f;
+
+		ImGui::Text("Water: %.2f / %.2f", waterTotal, waterCapacity);
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.10f, 0.60f, 0.95f, 1.0f));
+		ImGui::ProgressBar(waterRatio, ImVec2(-1.0f, 0.0f));
+		ImGui::PopStyleColor();
 	}
 
 	ImGui::Spacing();
@@ -164,6 +174,14 @@ void Gui::render()
 	if (ImGui::Button("Pipe", ImVec2(-1.0f, 0.0f))) {
 		m_selectedTool = SelectedTool::Build;
 		m_selectedBuilding = 1;
+	}
+	ImGui::PopStyleColor();
+
+	bool melterSelected = m_selectedTool == SelectedTool::Build && m_selectedBuilding == 2;
+	ImGui::PushStyleColor(ImGuiCol_Button, SelectedColor(melterSelected));
+	if (ImGui::Button("Ice Melter", ImVec2(-1.0f, 0.0f))) {
+		m_selectedTool = SelectedTool::Build;
+		m_selectedBuilding = 2;
 	}
 	ImGui::PopStyleColor();
 

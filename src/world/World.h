@@ -12,6 +12,8 @@ private:
     const float secondsPerGameDay = 5.0f;
     float totalEnergy = 0.0f;
     float totalEnergyCapacity = 0.0f;
+    float totalWater = 0.0f;
+    float totalWaterCapacity = 0.0f;
 
     int day = 1;
     int month = 1;
@@ -28,6 +30,8 @@ public:
     int getDay() const;
     int getMonth() const;
     int getYear() const;
-  float getTotalEnergy() const { return totalEnergy; }
+    float getTotalEnergy() const { return totalEnergy; }
     float getTotalEnergyCapacity() const { return totalEnergyCapacity; }
+    float getTotalWater() const { return totalWater; }
+    float getTotalWaterCapacity() const { return totalWaterCapacity; }
 };

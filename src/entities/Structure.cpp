@@ -72,6 +72,8 @@ PortType Structure::getPortAtTile(int pipeWorldX, int pipeWorldY, Direction edge
         int portX = this->x + port.offsetX;
         int portY = this->y + port.offsetY;
 
+        printf("  PORT: base=(%d,%d) offset=(%d,%d) -> portBase=(%d,%d) dir=%d\n",
+            this->x, this->y, port.offsetX, port.offsetY, portX, portY, (int)port.dir);
         // Przesuwamy o 1 kafel w stronê, w któr¹ port jest skierowany (ujœcie portu)
         // dopasowane do Twojego izometrycznego enum Direction
         if (port.dir == Direction::NORTH_EAST) { portY -= 1; }
@@ -81,6 +83,8 @@ PortType Structure::getPortAtTile(int pipeWorldX, int pipeWorldY, Direction edge
 
         // Jeœli ujœcie portu trafia dok³adnie w kafelek, na którym stoi rura
         // ORAZ kierunek rury zgadza siê z kierunkiem portu
+        printf("PORT CHECK: portTile=(%d,%d) vs pipeTile=(%d,%d), portDir=%d vs edgeDir=%d\n",
+            portX, portY, pipeWorldX, pipeWorldY, (int)port.dir, (int)edgeDir);
 
         if (portX == pipeWorldX && portY == pipeWorldY && port.dir == edgeDir) {
             return port.type;
