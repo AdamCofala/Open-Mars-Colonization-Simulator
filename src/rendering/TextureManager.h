@@ -52,7 +52,7 @@ private:
 			Rectangle{845, 0, 64, 39}, // 1101
 			Rectangle{910, 0, 64, 31}, // 1110
 
-			Rectangle{0, 0, 0, 0} // 1111 unused
+			Rectangle{0, 0, 0, 0} // 1111 
         };
     }
 

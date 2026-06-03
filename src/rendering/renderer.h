@@ -48,4 +48,5 @@ private:
     void RenderStruct(const Structure& structure, Vector2 pos, const Tile& baseTile, Color tint = WHITE);
 	void RenderPipe(const Pipe& p, Vector2 pos, const Tile& baseTile, Color tint = WHITE);
     void RenderSelected(const Map& map, Vector2 offset={1,1}, Color tint = Fade(SKYBLUE, 0.5f));
+    int getPipeConnectionBit(int fromX, int fromY, int toX, int toY) const;
 };

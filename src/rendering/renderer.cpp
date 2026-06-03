@@ -120,15 +120,35 @@ void Renderer::RenderStructures(const Map& map) {
         return (a->getX() + a->getY()) < (b->getX() + b->getY());
         });
 
+    // Czy jesteśmy w trybie podglądu rury?
+    const bool placingPipe = (r_selectedBuildingType == 1 &&
+        r_selectedTile.x >= 0 && r_selectedTile.y >= 0);
+    int selX = (int)r_selectedTile.x;
+    int selY = (int)r_selectedTile.y;
+
     for (const auto* s : sortedStructures) {
         Vector2 pos = IsoToScreen(s->getX(), s->getY(), &map);
-
         const Tile& baseTile = map.getTile(s->getX(), s->getY());
-        int n_raised = baseTile.getSlopeData()[0];
 
         if (s->isPipe()) {
-            RenderPipe(static_cast<const Pipe&>(*s), pos, baseTile);
-		}
+            const Pipe& pipe = static_cast<const Pipe&>(*s);
+            int mask = pipe.getConnectionMask();
+
+            if (placingPipe && std::abs(s->getX() - selX) + std::abs(s->getY() - selY) == 1) {
+                mask = map.computePipeConnectionMaskWithVirtual(s->getX(), s->getY(), selX, selY);
+            }
+
+            Rectangle sourceRec = txt_manager->PipeTexturesInfo[mask];
+            if (sourceRec.width == 0) {
+                sourceRec = txt_manager->PipeTexturesInfo[0];
+            }
+
+            float drawX = pos.x - sourceRec.width / 2.0f;
+            float drawY = pos.y - baseTile.getLevel() * HEIGHT_OFFSET - (sourceRec.height - 31.0f);
+
+            Color tint = WHITE;
+            DrawTextureRec(txt_manager->pipe_atlas, sourceRec, { drawX, drawY }, tint);
+        }
         else {
             RenderStruct(*s, pos, baseTile);
         }
@@ -158,6 +178,18 @@ void Renderer::RenderPipe(const Pipe& p, Vector2 pos, const Tile& baseTile, Colo
     DrawTextureRec(txt_manager->pipe_atlas, sourceRec, { drawX, drawY }, tint);
 }
 
+int Renderer::getPipeConnectionBit(int fromX, int fromY, int toX, int toY) const {
+    int dx = toX - fromX;
+    int dy = toY - fromY;
+    int i = -1;
+    if (dx == 0 && dy == -1) i = (int)Direction::NORTH_EAST; // 0
+    else if (dx == 1 && dy == 0)  i = (int)Direction::SOUTH_EAST; // 1
+    else if (dx == 0 && dy == 1)  i = (int)Direction::SOUTH_WEST; // 2
+    else if (dx == -1 && dy == 0) i = (int)Direction::NORTH_WEST; // 3
+
+    if (i >= 0) return (8 >> i);
+    return 0;
+}
 
 void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
     if (r_selectedTile.x < 0 || r_selectedTile.y < 0) return;
@@ -183,13 +215,19 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
             Color structureTint = valid_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
 
             if (tempStructure->isPipe()) {
-                RenderPipe(static_cast<const Pipe&>(*tempStructure), pos, baseTile, structureTint);
-            } else {
+                Pipe* tempPipe = static_cast<Pipe*>(tempStructure.get());
+                int mask = map.computePipeConnectionMask(startX, startY);
+                tempPipe->setConnectionMask(mask);
+                RenderPipe(*tempPipe, pos, baseTile, structureTint);
+            }
+            else {
                 RenderStruct(*tempStructure, pos, baseTile, structureTint);
             }
         }
     }
 }
+
+
 
 GameCamera& Renderer::getGameCamera() const {
     if (!camera) throw std::runtime_error("Camera is not initialized!");

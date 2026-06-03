@@ -367,3 +367,112 @@ void Map::updateNetworks(float dt) {
         if (net) net->updateNetwork(dt);
     }
 }
+
+int Map::computePipeConnectionMask(int px, int py) const {
+    if (px < 0 || px >= width || py < 0 || py >= height) return 0;
+
+    // kierunki identycznie jak w rebuildNetworks
+    int directionsX[4] = { 0,  1,  0, -1 };
+    int directionsY[4] = { -1, 0,  1,  0 };
+
+    const Tile& tile = tiles[py * width + px];
+    auto slope = tile.getSlopeData();
+    bool slope1100 = (slope[0] == 1 && slope[1] == 1 && slope[2] == 0 && slope[3] == 0);
+    bool slope1001 = (slope[0] == 1 && slope[1] == 0 && slope[2] == 0 && slope[3] == 1);
+
+    if (slope1100) {
+        return 0;
+    }
+    else if (slope1001) {
+        return 1;
+    }
+
+    int mask = 0;
+    for (int i = 0; i < 4; ++i) {
+        int nx = px + directionsX[i];
+        int ny = py + directionsY[i];
+        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+            const Structure* neighbor = getTile(nx, ny).getStructure();
+            if (neighbor) {
+                if (neighbor->isPipe()) {
+                    mask |= (8 >> i);
+                }
+                else {
+                    Direction hisDir = static_cast<Direction>((i + 2) % 4);
+                    PortType tilePort = neighbor->getPortAtTile(px, py, hisDir);
+                    if (tilePort == PortType::INPUT || tilePort == PortType::OUTPUT) {
+                        mask |= (8 >> i);
+                    }
+                }
+            }
+        }
+    }
+
+    // Korekta (identyczna jak w rebuildNetworks)
+    int popcnt = (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1) + ((mask >> 3) & 1);
+    if (popcnt == 0) {
+        mask = 3;
+    }
+    else if (popcnt == 1) {
+        for (int i = 0; i < 4; ++i) {
+            if (mask & (8 >> i)) {
+                mask |= (8 >> ((i + 2) % 4));
+                break;
+            }
+        }
+    }
+
+    return mask;
+}
+
+int Map::computePipeConnectionMaskWithVirtual(int px, int py, int vx, int vy) const {
+    if (px < 0 || px >= width || py < 0 || py >= height) return 0;
+
+    int directionsX[4] = { 0,  1,  0, -1 };
+    int directionsY[4] = { -1, 0,  1,  0 };
+
+    const Tile& tile = tiles[py * width + px];
+    auto slope = tile.getSlopeData();
+    bool slope1100 = (slope[0] == 1 && slope[1] == 1 && slope[2] == 0 && slope[3] == 0);
+    bool slope1001 = (slope[0] == 1 && slope[1] == 0 && slope[2] == 0 && slope[3] == 1);
+
+    if (slope1100) return 0;
+    if (slope1001) return 1;
+
+    int mask = 0;
+    for (int i = 0; i < 4; ++i) {
+        int nx = px + directionsX[i];
+        int ny = py + directionsY[i];
+        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+            // Sprawdź, czy to pole z wirtualną rurą
+            bool isVirtualPipe = (nx == vx && ny == vy);
+            const Structure* neighbor = isVirtualPipe ? nullptr : getTile(nx, ny).getStructure();
+
+            if (isVirtualPipe || (neighbor && neighbor->isPipe())) {
+                mask |= (8 >> i);
+            }
+            else if (neighbor) {
+                Direction hisDir = static_cast<Direction>((i + 2) % 4);
+                PortType tilePort = neighbor->getPortAtTile(px, py, hisDir);
+                if (tilePort == PortType::INPUT || tilePort == PortType::OUTPUT) {
+                    mask |= (8 >> i);
+                }
+            }
+        }
+    }
+
+    // Korekta
+    int popcnt = (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1) + ((mask >> 3) & 1);
+    if (popcnt == 0) {
+        mask = 3;
+    }
+    else if (popcnt == 1) {
+        for (int i = 0; i < 4; ++i) {
+            if (mask & (8 >> i)) {
+                mask |= (8 >> ((i + 2) % 4));
+                break;
+            }
+        }
+    }
+    return mask;
+}
