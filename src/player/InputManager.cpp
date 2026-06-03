@@ -48,6 +48,8 @@ void InputManager::update()
         m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
     }
 
+    m_renderer->setSelectedBuildingType(selectedBuilding);
+
     bool canInteractWithGame = !ImGui::GetIO().WantCaptureMouse;
 
     if (canInteractWithGame && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && m_selected_valid()) {

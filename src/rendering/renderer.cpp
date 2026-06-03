@@ -40,6 +40,11 @@ void Renderer::setSelectedTile(Vector2 tile, Vector2 offset)
     r_selectedTileOffset = offset;
 }
 
+void Renderer::setSelectedBuildingType(int typeIndex)
+{
+	r_selectedBuildingType = typeIndex;
+}
+
 VisibleTileBounds Renderer::getVisibleTileBounds(const Map& map) const {
     Camera2D cam = camera->getCamera();
     int halfW = map.getHalfWidth();
@@ -122,75 +127,68 @@ void Renderer::RenderStructures(const Map& map) {
         int n_raised = baseTile.getSlopeData()[0];
 
         if (s->isPipe()) {
-            const Pipe* p = static_cast<const Pipe*>(s);
-            int mask = p->getConnectionMask();
-            Rectangle sourceRec = txt_manager->PipeTexturesInfo[mask];
-            // fallback – nieznana maska dostaje pustą rurę (0000)
-            if (sourceRec.width == 0) {
-                sourceRec = txt_manager->PipeTexturesInfo[0];
-            }
-
-            float drawX = pos.x - sourceRec.width / 2.0f;
-            float drawY = pos.y
-                - baseTile.getLevel() * HEIGHT_OFFSET          // tylko poziom terenu
-                - (sourceRec.height - 31.0f);                  // wyrównanie do dołu kafelka (31 px)
-
-            DrawTextureRec(txt_manager->pipe_atlas, sourceRec, { drawX, drawY }, WHITE);
-        }
-        else
-        {
-			Texture2D sourceRec = txt_manager->StuctureTexturesInfo[s->getTextureId()];
-			float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
-			float drawX = pos.x - sourceRec.width / 2.0f;
-			float drawY = tileBottomY - sourceRec.height;
-			DrawTexture(sourceRec, (int)drawX, (int)drawY, WHITE);
+            RenderPipe(static_cast<const Pipe&>(*s), pos, baseTile);
+		}
+        else {
+            RenderStruct(*s, pos, baseTile);
         }
     }
 }
 
+void Renderer::RenderStruct(const Structure& structure, Vector2 pos, const Tile& baseTile, Color tint)
+{
+    Texture2D sourceRec = txt_manager->StuctureTexturesInfo[structure.getTextureId()];
+    float tileBottomY = pos.y - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
+    float drawX = pos.x - sourceRec.width / 2.0f;
+    float drawY = tileBottomY - sourceRec.height;
+    DrawTexture(sourceRec, (int)drawX, (int)drawY, tint);
+}
+
+void Renderer::RenderPipe(const Pipe& p, Vector2 pos, const Tile& baseTile, Color tint) {
+    int mask = p.getConnectionMask();
+    Rectangle sourceRec = txt_manager->PipeTexturesInfo[mask];
+
+    if (sourceRec.width == 0) {
+        sourceRec = txt_manager->PipeTexturesInfo[0];
+    }
+
+    float drawX = pos.x - sourceRec.width / 2.0f;
+    float drawY = pos.y - baseTile.getLevel() * HEIGHT_OFFSET - (sourceRec.height - 31.0f);
+
+    DrawTextureRec(txt_manager->pipe_atlas, sourceRec, { drawX, drawY }, tint);
+}
+
+
 void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
-	if (r_selectedTile.x < 0 || r_selectedTile.y < 0) return;
+    if (r_selectedTile.x < 0 || r_selectedTile.y < 0) return;
 
+    int startX = (int)r_selectedTile.x;
+    int startY = (int)r_selectedTile.y;
 
+    bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y);
 
-	int startX = (int)r_selectedTile.x;
-	int startY = (int)r_selectedTile.y;
-	int endX = startX - ((int)offset.x - 1);
-	int endY = startY - ((int)offset.y - 1);
+    if (r_selectedBuildingType >= 0) {
+        std::unique_ptr<Structure> tempStructure;
 
-	int minX = std::min(startX, endX);
-	int maxX = std::max(startX, endX);
-	int minY = std::min(startY, endY);
-	int maxY = std::max(startY, endY);
+        switch (r_selectedBuildingType) {
+			case 0: tempStructure = std::make_unique<SolarPanel>(0, 0); break;
+			case 1: tempStructure = std::make_unique<Pipe>(0, 0);       break;
+			case 2: tempStructure = std::make_unique<IceMelter>(0, 0);  break;
+			default: break;
+        }
 
-	auto [visMinX, visMaxX, visMinY, visMaxY] = getVisibleTileBounds(map);
+        if (tempStructure) {
+            Vector2 pos = IsoToScreen(startX, startY, &map);
+            const Tile& baseTile = map.getTile(startX, startY);
+            Color structureTint = valid_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
 
-	// Clip to visible tile bounds to avoid unnecessary rendering calculations
-	minX = std::max(minX, visMinX);
-	minY = std::max(minY, visMinY);
-	maxX = std::min(maxX, visMaxX - 1);
-	maxY = std::min(maxY, visMaxY - 1);
-
-	std::vector<std::pair<Tile, Vector2>> selectedTiles;
-
-	bool isSelectionOnly = (offset.x == 1 && offset.y == 1);
-	bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y);
-    bool isPipe = (offset.x == 1.0f && offset.y == 1.0f);
-
-	if (!isSelectionOnly) {
-		Vector2 pos = IsoToScreen(startX, startY, &map);
-		const Tile& baseTile = map.getTile(startX, startY);
-		int n_raised = baseTile.getSlopeData()[0];
-
-		// Calculate the bottom point of the structure based on the tile elevation
-		float tileBottomY = pos.y - n_raised * HEIGHT_OFFSET - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
-
-		float drawX = pos.x - txt_manager->StuctureTexturesInfo["solar_panels"].width / 2.0f;
-		float drawY = tileBottomY - txt_manager->StuctureTexturesInfo["solar_panels"].height;
-
-		Color structureTint = valid_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
-		DrawTexture(txt_manager->StuctureTexturesInfo["solar_panels"], (int)drawX, (int)drawY, structureTint);
-	}
+            if (tempStructure->isPipe()) {
+                RenderPipe(static_cast<const Pipe&>(*tempStructure), pos, baseTile, structureTint);
+            } else {
+                RenderStruct(*tempStructure, pos, baseTile, structureTint);
+            }
+        }
+    }
 }
 
 GameCamera& Renderer::getGameCamera() const {

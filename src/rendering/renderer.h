@@ -2,7 +2,11 @@
 #include "raylib.h"
 #include "GameCamera.h"
 #include "TextureManager.h"
+#include "entities/Structure.h"
 #include "world/World.h"
+#include "structures/SolarPanel.h"
+#include "structures/IceMelter.h"
+#include "entities/Pipe.h"
 
 struct VisibleTileBounds {
     int minX, maxX;
@@ -25,6 +29,7 @@ public:
     int getTileSize() const { return tileSize; }
     int getHeightOffset() const { return HEIGHT_OFFSET; }
     void setSelectedTile(Vector2 tile, Vector2 offset = { 1,1 });
+    void setSelectedBuildingType(int typeIndex);
     VisibleTileBounds getVisibleTileBounds(const Map& map) const;
 
 private:
@@ -32,6 +37,7 @@ private:
     const int HEIGHT_OFFSET = 8;
     Vector2 r_selectedTile = { -1, -1 };
 	Vector2 r_selectedTileOffset = { 1, 1 };
+        int r_selectedBuildingType = -1;
 
     GameCamera* camera = nullptr;
     TextureManager* txt_manager = nullptr;
@@ -39,5 +45,7 @@ private:
     void DrawIsoTile(const Tile& tile, Vector2 pos, Color tint = WHITE) const;
     void RenderTerrain(const Map& map);
     void RenderStructures(const Map& map);
+    void RenderStruct(const Structure& structure, Vector2 pos, const Tile& baseTile, Color tint = WHITE);
+	void RenderPipe(const Pipe& p, Vector2 pos, const Tile& baseTile, Color tint = WHITE);
     void RenderSelected(const Map& map, Vector2 offset={1,1}, Color tint = Fade(SKYBLUE, 0.5f));
 };

@@ -3,7 +3,7 @@
 #include "raylib.h"
 #include "world/Map.h"
 
-class Renderer; // Forward declaration
+class Renderer;
 class Gui;
 
 class InputManager
