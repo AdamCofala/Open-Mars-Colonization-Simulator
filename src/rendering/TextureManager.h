@@ -19,7 +19,8 @@ public:
 
     std::unordered_map<std::string, Texture2D> StuctureTexturesInfo{
         {"solar_panels", LoadTexture(RESOURCES_PATH "solar_panels.png")},
-        { "ice_melter", LoadTexture(RESOURCES_PATH "ice_melter.png") }
+        { "ice_melter", LoadTexture(RESOURCES_PATH "ice_melter.png") },
+        {"pipe", LoadTexture(RESOURCES_PATH "pipe.png")}
     };
     //Texture2D solar_panels = LoadTexture(RESOURCES_PATH "solar_panels.png");
     Texture2D cursor = LoadTexture(RESOURCES_PATH "cursor.png");

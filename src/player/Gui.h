@@ -1,6 +1,7 @@
 #pragma once
 #include "imgui.h"
 #include "rlImGui.h"
+#include <string>
 
 class World;
 class Renderer;
@@ -32,4 +33,5 @@ private:
 	int m_selectedBuilding = -1;
 	float m_gameSpeed = 1.0f;
 	bool m_showAboutWindow = false;
+	ImVec4 SelectedColor(bool selected) const;
 };

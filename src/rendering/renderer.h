@@ -28,6 +28,7 @@ public:
 
     int getTileSize() const { return tileSize; }
     int getHeightOffset() const { return HEIGHT_OFFSET; }
+    const TextureManager& getTextureManager() const { return *txt_manager; }
     void setSelectedTile(Vector2 tile, Vector2 offset = { 1,1 });
     void setSelectedBuildingType(int typeIndex);
     VisibleTileBounds getVisibleTileBounds(const Map& map) const;
