@@ -292,7 +292,7 @@ void Map::rebuildNetworks() {
 
         int popcnt = (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1) + ((mask >> 3) & 1);
         if (popcnt == 0) {
-            mask = 3;
+            mask = 10;
         }
         else if (popcnt == 1) {
             for (int i = 0; i < 4; ++i) {
@@ -408,10 +408,9 @@ int Map::computePipeConnectionMask(int px, int py) const {
         }
     }
 
-    // Korekta (identyczna jak w rebuildNetworks)
     int popcnt = (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1) + ((mask >> 3) & 1);
     if (popcnt == 0) {
-        mask = 3;
+        mask = 10;
     }
     else if (popcnt == 1) {
         for (int i = 0; i < 4; ++i) {
