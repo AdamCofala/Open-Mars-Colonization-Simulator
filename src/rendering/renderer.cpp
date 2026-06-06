@@ -91,10 +91,10 @@ void Renderer::RenderTerrain(const Map& map) {
         for (int x = minX; x < maxX; x++) {
             const Tile& tile = map.getTile(x, y);
 
-            if (tile.isOccupied()) {
-                DrawIsoTile(tile, IsoToScreen(x, y, &map), Fade(RED, 0.5f));
-                continue;
-            }
+            //if (tile.isOccupied()) {
+            //    //DrawIsoTile(tile, IsoToScreen(x, y, &map), Fade(RED, 0.5f));
+            //    continue;
+            //}
 
             Color base = { 245, 225, 200, 255 };
             int jitter = calc_jitter(x, y);
