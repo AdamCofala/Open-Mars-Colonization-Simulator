@@ -109,51 +109,43 @@ void Renderer::RenderTerrain(const Map& map) {
 }
 
 void Renderer::RenderStructures(const Map& map) {
-    std::vector<const Structure*> sortedStructures;
-    for (const auto& structurePtr : map.getStructures()) {
-        if (structurePtr != nullptr) {
-            sortedStructures.push_back(structurePtr.get());
-        }
-    }
+    std::vector<const Structure*> sorted;
+    for (const auto& s : map.getStructures())
+        if (s) sorted.push_back(s.get());
 
-    std::sort(sortedStructures.begin(), sortedStructures.end(), [](const Structure* a, const Structure* b) {
-        return (a->getX() + a->getY()) < (b->getX() + b->getY());
-        });
+    std::sort(sorted.begin(), sorted.end(), [](const Structure* a, const Structure* b) {
+        int dA = (a->getX() - a->getXOffset()/2 + a->getY() - a->getYOffset()/2);
+        int dB = (b->getX() - b->getXOffset()/2 + b->getY() - b->getYOffset()/2);
+        return dA < dB;
+    });
 
-    // Czy jesteśmy w trybie podglądu rury?
-    const bool placingPipe = (r_selectedBuildingType == 1 &&
-        r_selectedTile.x >= 0 && r_selectedTile.y >= 0);
+
+    const bool placingPipe = (r_selectedBuildingType == 1 && r_selectedTile.x >= 0 && r_selectedTile.y >= 0);
     int selX = (int)r_selectedTile.x;
     int selY = (int)r_selectedTile.y;
 
-    for (const auto* s : sortedStructures) {
+    for (const auto* s : sorted) {
         Vector2 pos = IsoToScreen(s->getX(), s->getY(), &map);
         const Tile& baseTile = map.getTile(s->getX(), s->getY());
 
         if (s->isPipe()) {
             const Pipe& pipe = static_cast<const Pipe&>(*s);
             int mask = pipe.getConnectionMask();
-
-            if (placingPipe && std::abs(s->getX() - selX) + std::abs(s->getY() - selY) == 1) {
+            if (placingPipe && std::abs(s->getX() - selX) + std::abs(s->getY() - selY) == 1)
                 mask = map.computePipeConnectionMaskWithVirtual(s->getX(), s->getY(), selX, selY);
-            }
 
             Rectangle sourceRec = txt_manager->PipeTexturesInfo[mask];
-            if (sourceRec.width == 0) {
-                sourceRec = txt_manager->PipeTexturesInfo[0];
-            }
-
+            if (sourceRec.width == 0) sourceRec = txt_manager->PipeTexturesInfo[0];
             float drawX = pos.x - sourceRec.width / 2.0f;
             float drawY = pos.y - baseTile.getLevel() * HEIGHT_OFFSET - (sourceRec.height - 31.0f);
-
-            Color tint = WHITE;
-            DrawTextureRec(txt_manager->pipe_atlas, sourceRec, { drawX, drawY }, tint);
+            DrawTextureRec(txt_manager->pipe_atlas, sourceRec, { drawX, drawY }, WHITE);
         }
         else {
             RenderStruct(*s, pos, baseTile);
         }
     }
 }
+
 
 void Renderer::RenderStruct(const Structure& structure, Vector2 pos, const Tile& baseTile, Color tint)
 {
