@@ -37,18 +37,17 @@ private:
     const int tileSize = 64;
     const int HEIGHT_OFFSET = 8;
     Vector2 r_selectedTile = { -1, -1 };
-	Vector2 r_selectedTileOffset = { 1, 1 };
-        int r_selectedBuildingType = -1;
+    Vector2 r_selectedTileOffset = { 1, 1 };
+    int r_selectedBuildingType = -1;
 
     GameCamera* camera = nullptr;
     TextureManager* txt_manager = nullptr;
 
-    void DrawIsoTile(const Tile& tile, Vector2 pos, Color tint = WHITE) const;
+    void RenderIsoTile(const Tile& tile, Vector2 pos, Color tint = WHITE) const;
     void RenderTerrain(const Map& map);
     void RenderStructures(const Map& map);
     void RenderStruct(const Structure& structure, Vector2 pos, const Tile& baseTile, Color tint = WHITE);
-	void RenderPipe(const Pipe& p, Vector2 pos, const Tile& baseTile, Color tint = WHITE);
-    void RenderSelected(const Map& map, Vector2 offset={1,1}, Color tint = Fade(SKYBLUE, 0.5f));
+    void RenderPipe(int mask, Vector2 pos, const Tile& baseTile, Color tint);
+    void RenderSelected(const Map& map, Vector2 offset = { 1,1 }, Color tint = Fade(SKYBLUE, 0.5f));
     int getPipeConnectionBit(int fromX, int fromY, int toX, int toY) const;
-
 };
