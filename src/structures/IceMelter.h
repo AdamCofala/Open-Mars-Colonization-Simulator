@@ -6,7 +6,7 @@ class IceMelter : public Structure {
 public:
     IceMelter(int x, int y) {
         productionRates[MaterialType::WATER] = 1;
-        consumeRates[MaterialType::ENERGY] = 1;
+        consumeRates[MaterialType::ENERGY] = 5;
 
         init(x, y, "ice_melter", 3, 3);
         setInternalCapacity(MaterialType::ENERGY, 500.0f);
