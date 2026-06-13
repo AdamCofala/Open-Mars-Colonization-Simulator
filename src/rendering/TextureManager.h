@@ -59,11 +59,11 @@ private:
 
     void load_pipes_textures() {
         PipeTexturesInfo.fill(Rectangle{ 0, 0, 0, 0 });
-        PipeTexturesInfo[1] = Rectangle{ 715, 0, 64, 42 };  // 0000
-        PipeTexturesInfo[0] = Rectangle{ 780, 0, 64, 42 };  // 0001 (W)
-        PipeTexturesInfo[2] = Rectangle{ 715, 0, 64, 42 };  // 0010 (S) – fallback do pustej
+        PipeTexturesInfo[1] = Rectangle{ 715, 0, 64, 42 };  // 0000     | special case 1
+        PipeTexturesInfo[0] = Rectangle{ 780, 0, 64, 42 };  // 0001 (W) | special case 2
+        PipeTexturesInfo[2] = Rectangle{ 845, 0, 64, 26 };  // 0010 (S) | special case 3
         PipeTexturesInfo[3] = Rectangle{ 0, 0, 64, 35 };    // 0011 (S+W)
-        PipeTexturesInfo[4] = Rectangle{ 715, 0, 64, 42 };  // 0100 (E) – fallback
+        PipeTexturesInfo[4] = Rectangle{ 910, 0, 64, 26 };  // 0100 (E) | special case 4
         PipeTexturesInfo[5] = Rectangle{ 65, 0, 64, 35 };   // 0101 (E+W)
         PipeTexturesInfo[6] = Rectangle{ 130, 0, 64, 31 };  // 0110 (E+S)
         PipeTexturesInfo[7] = Rectangle{ 195, 0, 64, 35 };  // 0111 (E+S+W)
