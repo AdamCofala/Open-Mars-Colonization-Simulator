@@ -58,12 +58,12 @@ private:
     }
 
     void load_pipes_textures() {
-        PipeTexturesInfo.fill(Rectangle{ 0, 0, 0, 0 });
-        PipeTexturesInfo[1] = Rectangle{ 715, 0, 64, 42 };  // 0000     | special case 1
-        PipeTexturesInfo[0] = Rectangle{ 780, 0, 64, 42 };  // 0001 (W) | special case 2
-        PipeTexturesInfo[2] = Rectangle{ 845, 0, 64, 26 };  // 0010 (S) | special case 3
+        PipeTexturesInfo.fill(Rectangle{ 0, 0, 0, 0 }); // FIX COMMENTS BELLOw
+        PipeTexturesInfo[1] = Rectangle{ 715, 0, 64, 42 };  // 0001     | special case 1
+        PipeTexturesInfo[0] = Rectangle{ 780, 0, 64, 42 };  // 0000 (W) | special case 2
+        PipeTexturesInfo[4] = Rectangle{ 845, 0, 64, 35 };  // 0010 (S) | special case 3
+		PipeTexturesInfo[2] = Rectangle{ 910, 0, 64, 35 };  // 0100 (E) | special case 4
         PipeTexturesInfo[3] = Rectangle{ 0, 0, 64, 35 };    // 0011 (S+W)
-        PipeTexturesInfo[4] = Rectangle{ 910, 0, 64, 26 };  // 0100 (E) | special case 4
         PipeTexturesInfo[5] = Rectangle{ 65, 0, 64, 35 };   // 0101 (E+W)
         PipeTexturesInfo[6] = Rectangle{ 130, 0, 64, 31 };  // 0110 (E+S)
         PipeTexturesInfo[7] = Rectangle{ 195, 0, 64, 35 };  // 0111 (E+S+W)
@@ -102,36 +102,31 @@ public:
         UnloadTextures();
     }
 
-    const Rectangle& map_pipe_to_texture(int data[4]) const
+    const int map_binary_to_index(int data[4]) const
     {
         int index =
             (data[0] << 3) |
             (data[1] << 2) |
             (data[2] << 1) |
             data[3];
+        return index;
+	}
 
+    const Rectangle& map_pipe_to_texture(int data[4]) const
+    {
+        int index = map_binary_to_index(data);
         return PipeTexturesInfo[index];
     }
 
     const Rectangle& map_ice_to_texture(int data[4]) const
     {
-        int index =
-            (data[0] << 3) |
-            (data[1] << 2) |
-            (data[2] << 1) |
-            data[3];
-
+        int index = map_binary_to_index(data);
         return IceTexturesInfo[index];
     }
 
     const Rectangle& map_slope_to_texture(int data[4]) const
     {
-        int index =
-            (data[0] << 3) |
-            (data[1] << 2) |
-            (data[2] << 1) |
-            data[3];
-
+        int index = map_binary_to_index(data);
         return TileTexturesInfo[index];
     }
  };
