@@ -3,7 +3,7 @@
 #include "world/World.h"
 #include "player/InputManager.h"
 #include "player/Gui.h"
-#include "player/StartScreen.h"    // <-- player/ folder
+#include "player/StartScreen.h"
 #include "imgui.h"
 #include "rlImGui.h"
 
@@ -89,7 +89,8 @@ void draw() {
         }
         else if (action == StartScreen::Action::LoadWorld) {
             std::string path = g_startScreen->getLoadPath();
-            (void)path; // NYI — podepnij tu deserializację
+            // NYI — podepnij tu deserializację
+            (void)path;
 
             WorldGenSettings defaults;
             g_startScreen->shutdown();
@@ -110,10 +111,23 @@ void draw() {
 
         gui->render();
 
-        renderer->drawCursor();
+        // --- Obsługa "Exit to Menu" z GUI ---
+        if (gui->shouldExitToMenu()) {
+            shutdownGame();                      // usuwa gui, renderer, world, inputManager
+
+            g_startScreen = new StartScreen();
+            g_startScreen->init();
+
+            g_state = GameState::StartScreen;
+        }
     }
 
-    rlImGuiEnd();
+    rlImGuiEnd();   // <-- ImGui rysuje swoje okna tutaj
+
+    // Kursor musi być narysowany po ImGui, żeby był zawsze na wierzchu
+    if (g_state == GameState::Playing && renderer != nullptr) {
+        renderer->drawCursor();
+    }
 
     EndDrawing();
 }
