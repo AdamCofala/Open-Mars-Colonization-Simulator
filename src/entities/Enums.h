@@ -24,4 +24,5 @@ struct StructurePort {
     int offsetY = 0;
     Direction dir;
     PortType type;
+    MaterialType material = MaterialType::NONE;
 };

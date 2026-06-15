@@ -17,46 +17,36 @@ void PipeNetwork::mergeWith(PipeNetwork* other) {
 void PipeNetwork::updateNetwork(float dt) {
     if (producers.empty() || consumers.empty()) return;
 
-    std::vector<MaterialType> allMaterials = {
-        MaterialType::WATER,
-        MaterialType::ENERGY
-    };
+    MaterialType matType = materialType;
+    if (matType == MaterialType::NONE) return;
 
-    for (MaterialType matType : allMaterials) {
+    float totalAvailable = 0.0f;
+    for (Structure* prod : producers)
+        totalAvailable += prod->getOutputInventory().getAmount(matType);
 
-        float totalAvailable = 0.0f;
-        for (Structure* prod : producers) {
-            totalAvailable += prod->getInternalInventory().getAmount(matType);
-        }
+    if (totalAvailable <= 0.0f) return;
 
-        if (totalAvailable <= 0.0f) continue;
+    float totalDemand = 0.0f;
+    for (Structure* cons : consumers) {
+        float cap = cons->getInputInventory().getMaxCapacity(matType);
+        float cur = cons->getInputInventory().getAmount(matType);
+        totalDemand += (cap - cur);
+    }
 
-        float totalDemand = 0.0f;
-        for (Structure* cons : consumers) {
-            float capacity = cons->getInternalInventory().getMaxCapacity(matType);
-            float amount = cons->getInternalInventory().getAmount(matType);
-            totalDemand += (capacity - amount);
-        }
+    if (totalDemand <= 0.0f) return;
 
-        if (totalDemand <= 0.0f) continue;
+    float amountToTransfer = std::min(totalAvailable, totalDemand);
+    float lossFactor = amountToTransfer / totalAvailable;
+    float gainFactor = amountToTransfer / totalDemand;
 
-        float amountToTransfer = std::min(totalAvailable, totalDemand);
-        float lossFactor = amountToTransfer / totalAvailable;
-        float gainFactor = amountToTransfer / totalDemand;
-
-        for (Structure* prod : producers) {
-            float currentAmount = prod->getInternalInventory().getAmount(matType);
-            float toSub = currentAmount * lossFactor;
-            prod->getInternalInventory().subResource(matType, toSub);
-        }
-
-        for (Structure* cons : consumers) {
-            float capacity = cons->getInternalInventory().getMaxCapacity(matType);
-            float amount = cons->getInternalInventory().getAmount(matType);
-            float spaceLeft = capacity - amount;
-
-            float toAdd = spaceLeft * gainFactor;
-            cons->getInternalInventory().addResource(matType, toAdd);
-        }
+    for (Structure* prod : producers) {
+        float cur = prod->getOutputInventory().getAmount(matType);
+        prod->getOutputInventory().subResource(matType, cur * lossFactor);
+    }
+    for (Structure* cons : consumers) {
+        float cap = cons->getInputInventory().getMaxCapacity(matType);
+        float cur = cons->getInputInventory().getAmount(matType);
+        float space = cap - cur;
+        cons->getInputInventory().addResource(matType, space * gainFactor);
     }
 }

@@ -23,7 +23,8 @@ private:
     int x;
     int y;
     std::string textureId;
-    Inventory internalInventory; // Inventory for the structure to track its own resources, for example how much energy it has produced / consumed, how much water it has produced / consumed, etc.
+    Inventory inputInventory;
+    Inventory outputInventory;
 
     int xOffset; // How many tiles the structure occupies in x direction
     int yOffset; // How many tiles the structure occupies in y direction
@@ -40,10 +41,16 @@ public:
     int getXOffset() const { return xOffset; }
     int getYOffset() const { return yOffset; }
 
-    const Inventory& getInternalInventory() const;
-	Inventory& getInternalInventory() { return internalInventory; }
+    Inventory& getInputInventory() { return inputInventory; }
+    Inventory& getOutputInventory() { return outputInventory; }
+    const Inventory& getInputInventory()  const { return inputInventory; }
+    const Inventory& getOutputInventory() const { return outputInventory; }
+
+    void setInputCapacity(MaterialType type, float capacity);
+    void setOutputCapacity(MaterialType type, float capacity);
 
     virtual bool isPipe() const;
     const std::vector<StructurePort>& getPorts() const;
     PortType getPortAtTile(int worldX, int worldY, Direction edgeDir) const;
+    MaterialType getMaterialAtPort(int worldX, int worldY, Direction edgeDir) const;
 };

@@ -253,10 +253,61 @@ void Map::rebuildNetworks() {
             Pipe* p = static_cast<Pipe*>(structPtr.get());
             p->network = nullptr;
             p->setConnectionMask(0);
+            p->setMaterialType(MaterialType::NONE);
             allPipes.push_back(p);
         }
     }
 
+    // --- FAZA 0: USTALANIE TYPU RURY ---
+    bool changed = true;
+    while (changed) {
+        changed = false;
+        for (Pipe* p : allPipes) {
+            if (p->getMaterialType() != MaterialType::NONE) continue;
+
+            int px = p->getX();
+            int py = p->getY();
+
+            MaterialType detectedType = MaterialType::NONE;
+            bool conflict = false;
+
+            for (int i = 0; i < 4; ++i) {
+                int nx = px + directionsX[i];
+                int ny = py + directionsY[i];
+                if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+
+                Structure* neighbor = getTile(nx, ny).getStructure();
+                if (!neighbor) continue;
+
+                MaterialType mat = MaterialType::NONE;
+                if (neighbor->isPipe()) {
+                    mat = static_cast<Pipe*>(neighbor)->getMaterialType();
+                }
+                else {
+                    Direction hisDir = static_cast<Direction>((i + 2) % 4);
+                    mat = neighbor->getMaterialAtPort(px, py, hisDir);
+                }
+
+                if (mat == MaterialType::NONE) continue;
+
+                if (detectedType == MaterialType::NONE) {
+                    detectedType = mat; // pierwszy znaleziony typ
+                }
+                else if (detectedType != mat) {
+                    conflict = true; // dwa różne typy z różnych stron
+                    break;
+                }
+            }
+
+            // Ustaw typ tylko jeśli nie ma konfliktu
+            if (!conflict && detectedType != MaterialType::NONE) {
+                p->setMaterialType(detectedType);
+                changed = true;
+            }
+        }
+    }
+
+    // --- FAZA 1: OBLICZANIE MASKI POŁĄCZEŃ ---
     for (Pipe* p : allPipes) {
         int px = p->getX();
         int py = p->getY();
@@ -266,7 +317,6 @@ void Map::rebuildNetworks() {
         bool slope1001 = (slope[0] == 1 && slope[1] == 0 && slope[2] == 0 && slope[3] == 1);
         bool slope0110 = (slope[0] == 0 && slope[1] == 1 && slope[2] == 1 && slope[3] == 0);
         bool slope0011 = (slope[0] == 0 && slope[1] == 0 && slope[2] == 1 && slope[3] == 1);
-
 
         if (slope1100) { p->setConnectionMask(0); continue; }
         else if (slope1001) { p->setConnectionMask(1); continue; }
@@ -281,11 +331,19 @@ void Map::rebuildNetworks() {
                 Structure* neighbor = getTile(nx, ny).getStructure();
                 if (neighbor) {
                     if (neighbor->isPipe()) {
-                        mask |= (8 >> i);
+                        Pipe* neighborPipe = static_cast<Pipe*>(neighbor);
+                        MaterialType myType = p->getMaterialType();
+                        MaterialType hisType = neighborPipe->getMaterialType();
+
+                        // Obaj muszą mieć typ I muszą być zgodne
+                        if (myType != MaterialType::NONE &&
+                            hisType != MaterialType::NONE &&
+                            myType == hisType) {
+                            mask |= (8 >> i);
+                        }
                     }
                     else {
                         Direction hisDir = static_cast<Direction>((i + 2) % 4);
-
                         PortType tilePort = neighbor->getPortAtTile(px, py, hisDir);
                         if (tilePort == PortType::INPUT || tilePort == PortType::OUTPUT) {
                             mask |= (8 >> i);
@@ -311,6 +369,7 @@ void Map::rebuildNetworks() {
         p->setConnectionMask(mask);
     }
 
+    // --- FAZA 2: BUDOWANIE LOGICZNYCH SIECI ---
     for (Pipe* p : allPipes) {
         if (p->network != nullptr) continue;
 
@@ -337,25 +396,40 @@ void Map::rebuildNetworks() {
                     if (neighbor) {
                         if (neighbor->isPipe()) {
                             Pipe* neighborPipe = static_cast<Pipe*>(neighbor);
+                            // Łącz logicznie tylko jeśli typy są zgodne
                             if (neighborPipe->network == nullptr) {
-                                neighborPipe->network = newNet.get();
-                                newNet->pipes.push_back(neighborPipe);
-                                queue.push_back(neighborPipe);
+                                MaterialType myType = current->getMaterialType();
+                                MaterialType hisType = neighborPipe->getMaterialType();
+
+                                if ((myType == MaterialType::NONE && hisType == MaterialType::NONE) ||
+                                    (myType != MaterialType::NONE && myType == hisType)) {
+                                    neighborPipe->network = newNet.get();
+                                    newNet->pipes.push_back(neighborPipe);
+                                    queue.push_back(neighborPipe);
+                                }
                             }
                         }
                         else {
                             Direction hisDir = static_cast<Direction>((i + 2) % 4);
-
                             PortType tilePort = neighbor->getPortAtTile(cx, cy, hisDir);
+                            MaterialType portMaterial = neighbor->getMaterialAtPort(cx, cy, hisDir);
 
                             if (tilePort == PortType::OUTPUT) {
-                                if (std::find(newNet->producers.begin(), newNet->producers.end(), neighbor) == newNet->producers.end()) {
-                                    newNet->producers.push_back(neighbor);
+                                if (newNet->getMaterialType() == MaterialType::NONE)
+                                    newNet->setMaterialType(portMaterial);
+                                if (newNet->getMaterialType() == portMaterial) {
+                                    if (std::find(newNet->producers.begin(), newNet->producers.end(), neighbor)
+                                        == newNet->producers.end())
+                                        newNet->producers.push_back(neighbor);
                                 }
                             }
                             if (tilePort == PortType::INPUT) {
-                                if (std::find(newNet->consumers.begin(), newNet->consumers.end(), neighbor) == newNet->consumers.end()) {
-                                    newNet->consumers.push_back(neighbor);
+                                if (newNet->getMaterialType() == MaterialType::NONE)
+                                    newNet->setMaterialType(portMaterial);
+                                if (newNet->getMaterialType() == portMaterial) {
+                                    if (std::find(newNet->consumers.begin(), newNet->consumers.end(), neighbor)
+                                        == newNet->consumers.end())
+                                        newNet->consumers.push_back(neighbor);
                                 }
                             }
                         }
@@ -376,7 +450,6 @@ void Map::updateNetworks(float dt) {
 int Map::computePipeConnectionMask(int px, int py) const {
     if (px < 0 || px >= width || py < 0 || py >= height) return 0;
 
-    // kierunki identycznie jak w rebuildNetworks
     int directionsX[4] = { 0,  1,  0, -1 };
     int directionsY[4] = { -1, 0,  1,  0 };
 
@@ -392,6 +465,28 @@ int Map::computePipeConnectionMask(int px, int py) const {
     else if (slope0110) return 2;
     else if (slope0011) return 4;
 
+    // Najpierw ustal typ wirtualnej rury (tak jak Faza 0)
+    MaterialType virtualType = MaterialType::NONE;
+    for (int i = 0; i < 4; ++i) {
+        int nx = px + directionsX[i];
+        int ny = py + directionsY[i];
+        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+        const Structure* neighbor = getTile(nx, ny).getStructure();
+        if (!neighbor) continue;
+
+        MaterialType mat = MaterialType::NONE;
+        if (neighbor->isPipe()) {
+            mat = static_cast<const Pipe*>(neighbor)->getMaterialType();
+        }
+        else {
+            Direction hisDir = static_cast<Direction>((i + 2) % 4);
+            mat = neighbor->getMaterialAtPort(px, py, hisDir);
+        }
+        if (mat != MaterialType::NONE) {
+            if (virtualType == MaterialType::NONE) virtualType = mat;
+            else if (virtualType != mat) { virtualType = MaterialType::NONE; break; }
+        }
+    }
 
     int mask = 0;
     for (int i = 0; i < 4; ++i) {
@@ -401,7 +496,13 @@ int Map::computePipeConnectionMask(int px, int py) const {
             const Structure* neighbor = getTile(nx, ny).getStructure();
             if (neighbor) {
                 if (neighbor->isPipe()) {
-                    mask |= (8 >> i);
+                    const Pipe* neighborPipe = static_cast<const Pipe*>(neighbor);
+                    MaterialType hisType = neighborPipe->getMaterialType();
+                    if (virtualType != MaterialType::NONE &&
+                        hisType != MaterialType::NONE &&
+                        virtualType == hisType) {
+                        mask |= (8 >> i);
+                    }
                 }
                 else {
                     Direction hisDir = static_cast<Direction>((i + 2) % 4);
@@ -415,18 +516,12 @@ int Map::computePipeConnectionMask(int px, int py) const {
     }
 
     int popcnt = (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1) + ((mask >> 3) & 1);
-    if (popcnt == 0) {
-        mask = 10;
-    }
+    if (popcnt == 0) mask = 10;
     else if (popcnt == 1) {
         for (int i = 0; i < 4; ++i) {
-            if (mask & (8 >> i)) {
-                mask |= (8 >> ((i + 2) % 4));
-                break;
-            }
+            if (mask & (8 >> i)) { mask |= (8 >> ((i + 2) % 4)); break; }
         }
     }
-
     return mask;
 }
 
@@ -438,52 +533,92 @@ int Map::computePipeConnectionMaskWithVirtual(int px, int py, int vx, int vy) co
 
     const Tile& tile = tiles[py * width + px];
     auto slope = tile.getSlopeData();
-    bool slope1100 = (slope[0] == 1 && slope[1] == 1 && slope[2] == 0 && slope[3] == 0);
-    bool slope1001 = (slope[0] == 1 && slope[1] == 0 && slope[2] == 0 && slope[3] == 1);
-    bool slope0110 = (slope[0] == 0 && slope[1] == 1 && slope[2] == 1 && slope[3] == 0);
-    bool slope0011 = (slope[0] == 0 && slope[1] == 0 && slope[2] == 1 && slope[3] == 1);
+    if (slope[0] == 1 && slope[1] == 1 && slope[2] == 0 && slope[3] == 0) return 0;
+    if (slope[0] == 1 && slope[1] == 0 && slope[2] == 0 && slope[3] == 1) return 1;
+    if (slope[0] == 0 && slope[1] == 1 && slope[2] == 1 && slope[3] == 0) return 2;
+    if (slope[0] == 0 && slope[1] == 0 && slope[2] == 1 && slope[3] == 1) return 4;
 
-    if (slope1100) return 0;
-    if (slope1001) return 1;
-    if (slope0110) return 2;
-    if (slope0011) return 4;
+    // Typ tej istniejącej rury
+    const Structure* self = getTile(px, py).getStructure();
+    MaterialType myType = MaterialType::NONE;
+    if (self && self->isPipe())
+        myType = static_cast<const Pipe*>(self)->getMaterialType();
+
+    // Typ wirtualnej rury (z computePipeConnectionMask)
+    MaterialType virtualType = computeVirtualPipeType(vx, vy);
 
     int mask = 0;
     for (int i = 0; i < 4; ++i) {
         int nx = px + directionsX[i];
         int ny = py + directionsY[i];
-        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-            // Sprawdź, czy to pole z wirtualną rurą
-            bool isVirtualPipe = (nx == vx && ny == vy);
-            const Structure* neighbor = isVirtualPipe ? nullptr : getTile(nx, ny).getStructure();
+        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
 
-            if (isVirtualPipe || (neighbor && neighbor->isPipe())) {
+        bool isVirtual = (nx == vx && ny == vy);
+
+        if (isVirtual) {
+            // Łącz z wirtualną rurą tylko jeśli typy są zgodne
+            if (myType != MaterialType::NONE &&
+                virtualType != MaterialType::NONE &&
+                myType == virtualType) {
                 mask |= (8 >> i);
             }
-            else if (neighbor) {
-                Direction hisDir = static_cast<Direction>((i + 2) % 4);
-                PortType tilePort = neighbor->getPortAtTile(px, py, hisDir);
-                if (tilePort == PortType::INPUT || tilePort == PortType::OUTPUT) {
+        }
+        else {
+            const Structure* neighbor = getTile(nx, ny).getStructure();
+            if (!neighbor) continue;
+            if (neighbor->isPipe()) {
+                const Pipe* neighborPipe = static_cast<const Pipe*>(neighbor);
+                MaterialType hisType = neighborPipe->getMaterialType();
+                if (myType != MaterialType::NONE &&
+                    hisType != MaterialType::NONE &&
+                    myType == hisType) {
                     mask |= (8 >> i);
                 }
             }
-        }
-    }
-
-    // Korekta
-    int popcnt = (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1) + ((mask >> 3) & 1);
-    if (popcnt == 0) {
-        mask = 3;
-    }
-    else if (popcnt == 1) {
-        for (int i = 0; i < 4; ++i) {
-            if (mask & (8 >> i)) {
-                mask |= (8 >> ((i + 2) % 4));
-                break;
+            else {
+                Direction hisDir = static_cast<Direction>((i + 2) % 4);
+                PortType tilePort = neighbor->getPortAtTile(px, py, hisDir);
+                if (tilePort == PortType::INPUT || tilePort == PortType::OUTPUT)
+                    mask |= (8 >> i);
             }
         }
     }
+
+    int popcnt = (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1) + ((mask >> 3) & 1);
+    if (popcnt == 0) mask = 3;
+    else if (popcnt == 1) {
+        for (int i = 0; i < 4; ++i) {
+            if (mask & (8 >> i)) { mask |= (8 >> ((i + 2) % 4)); break; }
+        }
+    }
     return mask;
+}
+
+MaterialType Map::computeVirtualPipeType(int px, int py) const {
+    int directionsX[4] = { 0,  1,  0, -1 };
+    int directionsY[4] = { -1, 0,  1,  0 };
+    MaterialType detected = MaterialType::NONE;
+
+    for (int i = 0; i < 4; ++i) {
+        int nx = px + directionsX[i];
+        int ny = py + directionsY[i];
+        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+        const Structure* neighbor = getTile(nx, ny).getStructure();
+        if (!neighbor) continue;
+
+        MaterialType mat = MaterialType::NONE;
+        if (neighbor->isPipe()) {
+            mat = static_cast<const Pipe*>(neighbor)->getMaterialType();
+        }
+        else {
+            Direction hisDir = static_cast<Direction>((i + 2) % 4);
+            mat = neighbor->getMaterialAtPort(px, py, hisDir);
+        }
+        if (mat == MaterialType::NONE) continue;
+        if (detected == MaterialType::NONE) detected = mat;
+        else if (detected != mat) return MaterialType::NONE; // konflikt
+    }
+    return detected;
 }
 
 void Map::removeStructureAt(int tileX, int tileY) {

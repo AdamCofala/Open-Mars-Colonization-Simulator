@@ -7,11 +7,15 @@ void Structure::init(int startX, int startY, const std::string& texId, int xOffs
 	textureId = texId;
 	this->xOffset = xOffset;
 	this->yOffset = yOffset;
-   internalInventory.init();
+    inputInventory.init();
+    outputInventory.init();
 }
 
-void Structure::setInternalCapacity(MaterialType type, float capacity) {
-    internalInventory.setMaxCapacity(type, capacity);
+void Structure::setInputCapacity(MaterialType type, float capacity) {
+    inputInventory.setMaxCapacity(type, capacity);
+}
+void Structure::setOutputCapacity(MaterialType type, float capacity) {
+    outputInventory.setMaxCapacity(type, capacity);
 }
 
 void Structure::update(float dt, Map& map) {
@@ -19,7 +23,7 @@ void Structure::update(float dt, Map& map) {
 
     for (const auto& [material, rate] : consumeRates) {
         float needed = rate * dt;
-        if (needed > 0.0f && !internalInventory.hasResource(material, needed)) {
+        if (needed > 0.0f && !inputInventory.hasResource(material, needed)) {
             canOperate = false;
             break;
         }
@@ -28,22 +32,29 @@ void Structure::update(float dt, Map& map) {
     if (canOperate) {
         for (const auto& [material, rate] : consumeRates) {
             float needed = rate * dt;
-            if (needed > 0.0f) {
-                internalInventory.subResource(material, needed);
-            }
+            if (needed > 0.0f)
+                inputInventory.subResource(material, needed);
         }
-
         for (const auto& [material, rate] : productionRates) {
             float produced = rate * dt;
-            if (produced > 0.0f) {
-                internalInventory.addResource(material, produced);
-            }
+            if (produced > 0.0f)
+                outputInventory.addResource(material, produced);
         }
     }
 }
 
-const Inventory& Structure::getInternalInventory() const {
-    return internalInventory;
+MaterialType Structure::getMaterialAtPort(int pipeWorldX, int pipeWorldY, Direction edgeDir) const {
+    for (const auto& port : m_ports) {
+        int portX = this->x + port.offsetX;
+        int portY = this->y + port.offsetY;
+        if (port.dir == Direction::NORTH_EAST) { portY -= 1; }
+        else if (port.dir == Direction::SOUTH_EAST) { portX += 1; }
+        else if (port.dir == Direction::SOUTH_WEST) { portY += 1; }
+        else if (port.dir == Direction::NORTH_WEST) { portX -= 1; }
+        if (portX == pipeWorldX && portY == pipeWorldY && port.dir == edgeDir)
+            return port.material;
+    }
+    return MaterialType::NONE;
 }
 
 std::string Structure::getTextureId() const {
@@ -75,9 +86,6 @@ PortType Structure::getPortAtTile(int pipeWorldX, int pipeWorldY, Direction edge
         else if (port.dir == Direction::SOUTH_EAST) { portX += 1; }
         else if (port.dir == Direction::SOUTH_WEST) { portY += 1; }
         else if (port.dir == Direction::NORTH_WEST) { portX -= 1; }
-
-        printf("PORT CHECK: portTile=(%d,%d) vs pipeTile=(%d,%d), portDir=%d vs edgeDir=%d\n",
-            portX, portY, pipeWorldX, pipeWorldY, (int)port.dir, (int)edgeDir);
 
         if (portX == pipeWorldX && portY == pipeWorldY && port.dir == edgeDir) {
             return port.type;

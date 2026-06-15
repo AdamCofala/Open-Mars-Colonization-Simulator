@@ -38,6 +38,7 @@ public:
     void updateNetworks(float dt);
     int  computePipeConnectionMask(int px, int py) const;
     int  computePipeConnectionMaskWithVirtual(int px, int py, int virtualX, int virtualY) const;
+    MaterialType computeVirtualPipeType(int px, int py) const;
 
     void removeStructureAt(int tileX, int tileY);
 };
