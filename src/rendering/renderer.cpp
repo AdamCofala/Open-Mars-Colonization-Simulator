@@ -7,6 +7,7 @@
 #include "raylib.h"
 
 #include <stdexcept>
+#include <iostream>
 #include <algorithm>
 
 void Renderer::init() {
@@ -247,7 +248,12 @@ void Renderer::RenderIsoTile(const Tile& tile, Vector2 pos, Color tint) const {
 
     if (tile.getType() == TileType::Ice) {
         rect = txt_manager->map_ice_to_texture(slope_vec.data());
-        atlas = txt_manager->ice_atlas;
+        if (rect.width == 0) {
+            rect = txt_manager->map_slope_to_texture(slope_vec.data());
+			atlas = txt_manager->tile_atlas;
+		}else{
+			atlas = txt_manager->ice_atlas;
+		}
     }
     else {
         rect = txt_manager->map_slope_to_texture(slope_vec.data());

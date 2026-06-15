@@ -80,6 +80,10 @@ private:
     void load_ice_textures() {
         IceTexturesInfo.fill(Rectangle{0, 0, 0, 0});
         IceTexturesInfo[0] = Rectangle{0, 0, 64, 31};  // 0000
+        IceTexturesInfo[1] = Rectangle{65, 0, 64, 31};  // 0001
+        IceTexturesInfo[4] = Rectangle{130, 0, 64, 31};  // 0100
+        IceTexturesInfo[8] = Rectangle{195, 0, 64, 39};  // 1000
+        IceTexturesInfo[2] = Rectangle{260, 0, 64, 23};  // 0010
     }
 
     void UnloadTextures() {

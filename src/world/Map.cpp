@@ -148,9 +148,8 @@ void Map::generateTerrain() {
                     if (level[ny][nx] < basinLevel) {
                         hasOutlet = true;
                     }
-                    else if (level[ny][nx] == basinLevel &&
-                        tiles[ny * width + nx].isFlat() &&
-                        !visited[ny][nx]) {
+                    else if (level[ny][nx] == basinLevel && !visited[ny][nx])
+                    {
                         visited[ny][nx] = true;
                         q.push({ nx, ny });
                     }
