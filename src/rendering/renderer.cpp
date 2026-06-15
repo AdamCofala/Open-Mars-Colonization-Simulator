@@ -172,6 +172,17 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
     int startX = (int)r_selectedTile.x;
     int startY = (int)r_selectedTile.y;
 
+    // --- DEMOLISH PODŚWIETLENIE ---
+    if (r_selectedTool == Gui::SelectedTool::Demolish) {
+        Tile& tile = map.getTile(startX, startY);
+        const Structure* structure = tile.getStructure();
+        if (structure) {
+            Vector2 pos = IsoToScreen(structure->getX(), structure->getY(), &map);
+            const Tile& baseTile = map.getTile(structure->getX(), structure->getY());
+            RenderStruct(*structure, pos, baseTile, Fade(RED, 0.6f));
+        }
+    }
+
     bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y);
 
     if (r_selectedBuildingType >= 0) {

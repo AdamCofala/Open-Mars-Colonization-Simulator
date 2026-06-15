@@ -480,3 +480,30 @@ int Map::computePipeConnectionMaskWithVirtual(int px, int py, int vx, int vy) co
     }
     return mask;
 }
+
+void Map::removeStructureAt(int tileX, int tileY) {
+    Tile& tile = getTile(tileX, tileY);
+    Structure* structPtr = tile.getStructure();
+    if (!structPtr) return; // nic do wyburzenia
+
+    int baseX = structPtr->getX();
+    int baseY = structPtr->getY();
+    int xOff = structPtr->getXOffset();
+    int yOff = structPtr->getYOffset();
+
+    auto it = std::find_if(structures.begin(), structures.end(),
+        [structPtr](const std::unique_ptr<Structure>& s) {
+            return s.get() == structPtr;
+        });
+    if (it != structures.end()) {
+        structures.erase(it);
+    }
+
+    for (int row = 0; row < yOff; ++row) {
+        for (int col = 0; col < xOff; ++col) {
+            getTile(baseX - col, baseY - row).setStructure(nullptr);
+        }
+    }
+
+    rebuildNetworks();
+}

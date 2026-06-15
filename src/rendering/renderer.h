@@ -7,6 +7,7 @@
 #include "structures/SolarPanel.h"
 #include "structures/IceMelter.h"
 #include "entities/Pipe.h"
+#include "player/Gui.h"
 
 struct VisibleTileBounds {
     int minX, maxX;
@@ -42,6 +43,7 @@ private:
 
     GameCamera* camera = nullptr;
     TextureManager* txt_manager = nullptr;
+    Gui::SelectedTool r_selectedTool = Gui::SelectedTool::Select;
 
     void RenderIsoTile(const Tile& tile, Vector2 pos, Color tint = WHITE) const;
     void RenderTerrain(const Map& map);

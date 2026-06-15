@@ -110,6 +110,9 @@ void InputManager::update()
                 m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
             }
         }
+        else if (tool == Gui::SelectedTool::Demolish) {
+            m_map->removeStructureAt((int)m_selectedTile.x, (int)m_selectedTile.y);
+        }
     }
 }
 
