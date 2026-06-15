@@ -42,5 +42,5 @@ public:
     void setSlopeData(int newSlopeData[4]);
 
     void setStructure(Structure* newStructure);
-    Structure* getStructure();
+    Structure* getStructure() const;
 };

@@ -75,7 +75,7 @@ void Tile::setSlopeData(int newSlopeData[4]) {
     }
 }
 
-Structure* Tile::getStructure() {
+Structure* Tile::getStructure() const {
     return structure;
 }
 

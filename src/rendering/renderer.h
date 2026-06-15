@@ -32,6 +32,7 @@ public:
     const TextureManager& getTextureManager() const { return *txt_manager; }
     void setSelectedTile(Vector2 tile, Vector2 offset = { 1,1 });
     void setSelectedBuildingType(int typeIndex);
+    void setSelectedTool(Gui::SelectedTool tool) { r_selectedTool = tool; }
     VisibleTileBounds getVisibleTileBounds(const Map& map) const;
 
 private:

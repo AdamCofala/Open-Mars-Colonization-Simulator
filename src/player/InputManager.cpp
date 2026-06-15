@@ -49,6 +49,7 @@ void InputManager::update()
     }
 
     m_renderer->setSelectedBuildingType(selectedBuilding);
+    m_renderer->setSelectedTool(tool);
 
     bool canInteractWithGame = !ImGui::GetIO().WantCaptureMouse;
 

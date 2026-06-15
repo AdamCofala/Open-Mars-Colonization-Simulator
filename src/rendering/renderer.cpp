@@ -174,13 +174,22 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 
     // --- DEMOLISH PODŚWIETLENIE ---
     if (r_selectedTool == Gui::SelectedTool::Demolish) {
-        Tile& tile = map.getTile(startX, startY);
+        const Tile& tile = map.getTile(startX, startY);   // dodaj const (poprawka)
         const Structure* structure = tile.getStructure();
         if (structure) {
             Vector2 pos = IsoToScreen(structure->getX(), structure->getY(), &map);
             const Tile& baseTile = map.getTile(structure->getX(), structure->getY());
-            RenderStruct(*structure, pos, baseTile, Fade(RED, 0.6f));
+
+            if (structure->isPipe()) {
+                const Pipe* pipe = static_cast<const Pipe*>(structure);
+                int mask = pipe->getConnectionMask();
+                RenderPipe(mask, pos, baseTile, Fade(RED, 0.6f));
+            }
+            else {
+                RenderStruct(*structure, pos, baseTile, Fade(RED, 0.6f));
+            }
         }
+        return;
     }
 
     bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y);
