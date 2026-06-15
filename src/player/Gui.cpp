@@ -121,7 +121,6 @@ void Gui::init(World* world, Renderer* renderer) {
 }
 
 void Gui::render() {
-    rlImGuiBegin();
 
     const float screenWidth = static_cast<float>(GetScreenWidth());
     const float screenHeight = static_cast<float>(GetScreenHeight());
@@ -308,5 +307,4 @@ void Gui::render() {
         ImGui::End();
     }
 
-    rlImGuiEnd();
 }

@@ -2,15 +2,14 @@
 #include <stdexcept>
 
 
-void World::init(int mapWidth, int mapHeight) {
-
+void World::init(int mapWidth, int mapHeight, const WorldGenSettings& settings) {
 	if (map) {
 		throw std::runtime_error("World is already initialized!");
 	}
 
 	map = new Map();
 	map->init(mapWidth, mapHeight);
-	map->generateTerrain();
+	map->generateTerrain(settings);   // pass settings through
 
 	globalInventory.init();
 

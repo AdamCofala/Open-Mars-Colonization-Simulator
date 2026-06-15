@@ -1,12 +1,12 @@
-// TODO : Implement a World class that manages the game world, including entities, map, resource logic etc. !
+// Updated World.h — adds WorldGenSettings to init()
 #pragma once
 #include "Map.h"
 #include "../entities/Inventory.h"
-
+#include "WorldGenSettings.h"   // NEW
 
 class World {
 private:
-	Map* map = nullptr;
+    Map* map = nullptr;
     Inventory globalInventory;
     float timeAccumulator = 0.0f;
     const float secondsPerGameDay = 5.0f;
@@ -20,18 +20,20 @@ private:
     int year = 2050;
 
 public:
-	void init(int mapWidth = 191, int mapHeight = 191);
-	void update(float dt);
-	void shutdown();
-	Map& getMap() const;
+    // NEW: accepts WorldGenSettings; old default stays compatible
+    void init(int mapWidth = 128, int mapHeight = 128,
+        const WorldGenSettings& settings = WorldGenSettings{});
+    void update(float dt);
+    void shutdown();
+    Map& getMap() const;
     Inventory& getGlobalInventory() { return globalInventory; }
     const Inventory& getGlobalInventory() const { return globalInventory; }
 
-    int getDay() const;
-    int getMonth() const;
-    int getYear() const;
-    float getTotalEnergy() const { return totalEnergy; }
+    int   getDay()   const;
+    int   getMonth() const;
+    int   getYear()  const;
+    float getTotalEnergy()         const { return totalEnergy; }
     float getTotalEnergyCapacity() const { return totalEnergyCapacity; }
-    float getTotalWater() const { return totalWater; }
-    float getTotalWaterCapacity() const { return totalWaterCapacity; }
+    float getTotalWater()          const { return totalWater; }
+    float getTotalWaterCapacity()  const { return totalWaterCapacity; }
 };

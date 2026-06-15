@@ -60,15 +60,19 @@ static int randInt(int min, int max) {
     return dist(rng);
 }
 
-void Map::generateTerrain() {
-    PerlinNoise perlin(randInt(0, 10000));
-    const float scale = 0.05f;
-    const float warpStrength = 6.0f;
-    const int maxHeight = 10;
+
+void Map::generateTerrain(const WorldGenSettings& settings) {
+    unsigned int seed = (settings.seed >= 0) ? (unsigned int)settings.seed
+        : (unsigned int)randInt(0, 100000);
+
+    PerlinNoise perlin(seed);
+    const float scale = settings.noiseScale;
+    const float warpStrength = settings.warpStrength;
+    const int   maxHeight = settings.maxHeight;
 
     std::vector<std::vector<int>> vertex(height + 1, std::vector<int>(width + 1));
-    for (int y = 0; y <= height; y++) {
-        for (int x = 0; x <= width; x++) {
+    for (int y = 0; y <= (int)height; y++) {
+        for (int x = 0; x <= (int)width; x++) {
             float nx = perlin.noise(x * scale, y * scale);
             float ny = perlin.noise((x + 1000) * scale, (y + 1000) * scale);
             float warped = perlin.noise((x + nx * warpStrength) * scale,
@@ -81,11 +85,11 @@ void Map::generateTerrain() {
     enforceValidTerrain(vertex, width, height);
 
     auto clampEdges = [&](std::vector<std::vector<int>>& v) {
-        for (int x = 0; x <= width; x++) {
+        for (int x = 0; x <= (int)width; x++) {
             v[0][x] = v[1][x];
             v[height][x] = v[height - 1][x];
         }
-        for (int y = 0; y <= height; y++) {
+        for (int y = 0; y <= (int)height; y++) {
             v[y][0] = v[y][1];
             v[y][width] = v[y][width - 1];
         }
@@ -94,8 +98,8 @@ void Map::generateTerrain() {
     clampEdges(vertex);
     enforceValidTerrain(vertex, width, height);
 
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
+    for (int y = 0; y < (int)height; y++) {
+        for (int x = 0; x < (int)width; x++) {
             int vN = vertex[y][x];
             int vE = vertex[y][x + 1];
             int vS = vertex[y + 1][x + 1];
@@ -108,21 +112,23 @@ void Map::generateTerrain() {
         }
     }
 
+    // Ice deposits
     const float lakeNoiseScale = 0.1f;
-    const float lakeNoiseThreshold = 0.5f;
+    const float lakeNoiseThreshold = settings.lakeThreshold;
     const int   minBasinSize = 2;
+
     std::vector<std::vector<int>>  level(height, std::vector<int>(width));
     std::vector<std::vector<bool>> visited(height, std::vector<bool>(width, false));
-    for (int y = 0; y < height; ++y)
-        for (int x = 0; x < width; ++x)
+    for (int y = 0; y < (int)height; ++y)
+        for (int x = 0; x < (int)width; ++x)
             level[y][x] = tiles[y * width + x].getLevel();
 
     PerlinNoise lakeNoise(randInt(0, 10000));
     const int dx[] = { 0, 0, -1, 1 };
     const int dy[] = { -1, 1,  0, 0 };
 
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
+    for (int y = 0; y < (int)height; ++y) {
+        for (int x = 0; x < (int)width; ++x) {
             if (visited[y][x] || !tiles[y * width + x].isFlat())
                 continue;
             const int basinLevel = level[y][x];
@@ -136,20 +142,19 @@ void Map::generateTerrain() {
             while (!q.empty()) {
                 auto [cx, cy] = q.front(); q.pop();
                 basin.push_back({ cx, cy });
-                if (cx == 0 || cx == width - 1 || cy == 0 || cy == height - 1)
+                if (cx == 0 || cx == (int)width - 1 || cy == 0 || cy == (int)height - 1)
                     touchesEdge = true;
                 for (int i = 0; i < 4; ++i) {
                     int nx = cx + dx[i];
                     int ny = cy + dy[i];
-                    if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
+                    if (nx < 0 || nx >= (int)width || ny < 0 || ny >= (int)height) {
                         touchesEdge = true;
                         continue;
                     }
                     if (level[ny][nx] < basinLevel) {
                         hasOutlet = true;
                     }
-                    else if (level[ny][nx] == basinLevel && !visited[ny][nx])
-                    {
+                    else if (level[ny][nx] == basinLevel && !visited[ny][nx]) {
                         visited[ny][nx] = true;
                         q.push({ nx, ny });
                     }

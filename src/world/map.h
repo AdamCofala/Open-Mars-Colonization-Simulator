@@ -5,6 +5,7 @@
 #include "entities/Structure.h"
 #include "../entities/Pipe.h"
 #include "../entities/PipeNetwork.h"
+#include "WorldGenSettings.h"   // NEW
 
 class Map {
 private:
@@ -18,7 +19,8 @@ private:
 
 public:
     void init(int w, int h);
-    void generateTerrain();
+    void generateTerrain(const WorldGenSettings& settings = WorldGenSettings{});   // NEW signature
+
     Tile& getTile(int x, int y) const;
 
     std::vector<std::unique_ptr<Structure>>& getStructures();
@@ -34,8 +36,8 @@ public:
     void addStructure(std::unique_ptr<Structure> structure);
     void rebuildNetworks();
     void updateNetworks(float dt);
-	int computePipeConnectionMask(int px, int py) const;
-    int computePipeConnectionMaskWithVirtual(int px, int py, int virtualX, int virtualY) const;
+    int  computePipeConnectionMask(int px, int py) const;
+    int  computePipeConnectionMaskWithVirtual(int px, int py, int virtualX, int virtualY) const;
 
     void removeStructureAt(int tileX, int tileY);
 };
