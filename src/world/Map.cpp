@@ -206,7 +206,9 @@ bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset, bool isPipe)
                 bool flat = tile.isFlat();
                 bool slope1100 = (slope[0] == 1 && slope[1] == 1 && slope[2] == 0 && slope[3] == 0);
                 bool slope1001 = (slope[0] == 1 && slope[1] == 0 && slope[2] == 0 && slope[3] == 1);
-                if (!flat && !slope1100 && !slope1001) return false;
+                bool slope0110 = (slope[0] == 0 && slope[1] == 1 && slope[2] == 1 && slope[3] == 0);
+                bool slope0011 = (slope[0] == 0 && slope[1] == 0 && slope[2] == 1 && slope[3] == 1);
+                if (!flat && !slope1100 && !slope1001 && !slope0110 && !slope0011) return false;
             }
             else {
                 if (!tile.isFlat()) return false;
@@ -258,15 +260,14 @@ void Map::rebuildNetworks() {
         auto slope = tile.getSlopeData();
         bool slope1100 = (slope[0] == 1 && slope[1] == 1 && slope[2] == 0 && slope[3] == 0);
         bool slope1001 = (slope[0] == 1 && slope[1] == 0 && slope[2] == 0 && slope[3] == 1);
+        bool slope0110 = (slope[0] == 0 && slope[1] == 1 && slope[2] == 1 && slope[3] == 0);
+        bool slope0011 = (slope[0] == 0 && slope[1] == 0 && slope[2] == 1 && slope[3] == 1);
 
-        if (slope1100) {
-            p->setConnectionMask(0);
-            continue;
-        }
-        else if (slope1001) {
-            p->setConnectionMask(1);
-            continue;
-        }
+
+        if (slope1100) { p->setConnectionMask(0); continue; }
+        else if (slope1001) { p->setConnectionMask(1); continue; }
+        else if (slope0110) { p->setConnectionMask(2); continue; }
+        else if (slope0011) { p->setConnectionMask(4); continue; }
 
         int mask = 0;
         for (int i = 0; i < 4; ++i) {
@@ -379,13 +380,14 @@ int Map::computePipeConnectionMask(int px, int py) const {
     auto slope = tile.getSlopeData();
     bool slope1100 = (slope[0] == 1 && slope[1] == 1 && slope[2] == 0 && slope[3] == 0);
     bool slope1001 = (slope[0] == 1 && slope[1] == 0 && slope[2] == 0 && slope[3] == 1);
+    bool slope0110 = (slope[0] == 0 && slope[1] == 1 && slope[2] == 1 && slope[3] == 0);
+    bool slope0011 = (slope[0] == 0 && slope[1] == 0 && slope[2] == 1 && slope[3] == 1);
 
-    if (slope1100) {
-        return 0;
-    }
-    else if (slope1001) {
-        return 1;
-    }
+    if (slope1100) return 0;
+    else if (slope1001) return 1;
+    else if (slope0110) return 2;
+    else if (slope0011) return 4;
+
 
     int mask = 0;
     for (int i = 0; i < 4; ++i) {
@@ -434,9 +436,13 @@ int Map::computePipeConnectionMaskWithVirtual(int px, int py, int vx, int vy) co
     auto slope = tile.getSlopeData();
     bool slope1100 = (slope[0] == 1 && slope[1] == 1 && slope[2] == 0 && slope[3] == 0);
     bool slope1001 = (slope[0] == 1 && slope[1] == 0 && slope[2] == 0 && slope[3] == 1);
+    bool slope0110 = (slope[0] == 0 && slope[1] == 1 && slope[2] == 1 && slope[3] == 0);
+    bool slope0011 = (slope[0] == 0 && slope[1] == 0 && slope[2] == 1 && slope[3] == 1);
 
     if (slope1100) return 0;
     if (slope1001) return 1;
+    if (slope0110) return 2;
+    if (slope0011) return 4;
 
     int mask = 0;
     for (int i = 0; i < 4; ++i) {
