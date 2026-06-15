@@ -26,6 +26,10 @@ public:
 	int getSelectedBuilding() const { return m_selectedBuilding; }
 	float getGameSpeed() const { return m_gameSpeed; }
 
+	// --- Nowa metoda do powrotu do menu g³ównego ---
+	bool shouldExitToMenu() const { return m_exitToMenu; }
+	void resetExitToMenu() { m_exitToMenu = false; }
+
 private:
 	World* m_world = nullptr;
 	Renderer* m_renderer = nullptr;
@@ -33,5 +37,7 @@ private:
 	int m_selectedBuilding = -1;
 	float m_gameSpeed = 1.0f;
 	bool m_showAboutWindow = false;
+	bool m_exitToMenu = false;          // <-- flaga wyjœcia
+
 	ImVec4 SelectedColor(bool selected) const;
 };

@@ -128,8 +128,12 @@ void Gui::render() {
     // ---------- MENU GÓRNE ----------
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("Game")) {
-            ImGui::MenuItem("Save");
-            ImGui::MenuItem("Load");
+            if (ImGui::MenuItem("Save")) { /* TODO: save */ }
+            if (ImGui::MenuItem("Load")) { /* TODO: load */ }
+            ImGui::Separator();
+            if (ImGui::MenuItem("Exit to Menu")) {
+                m_exitToMenu = true;   // g³ówna pêtla przechwyci tê flagê
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Speed")) {
@@ -205,7 +209,6 @@ void Gui::render() {
         const BuildingUIData& data = GetBuildingData(i);
         const Texture2D& tex = texMan.StuctureTexturesInfo.at(data.textureKey);
 
-        // proporcje ikony (bez zmian)
         float maxIconWidth = 64.0f;
         float maxIconHeight = 31.0f;
         float aspect = (float)tex.width / (float)tex.height;
@@ -221,7 +224,6 @@ void Gui::render() {
         iconSize.x = std::max(iconSize.x, 20.0f);
         iconSize.y = std::max(iconSize.y, 20.0f);
 
-        // Ikona jako przycisk
         ImGui::PushID(i);
         if (ImGui::ImageButton("##buildingbtn", (ImTextureID)(intptr_t)tex.id, iconSize)) {
             m_selectedTool = SelectedTool::Build;
@@ -229,16 +231,14 @@ void Gui::render() {
         }
         ImGui::PopID();
 
-        ImGui::SameLine(0, 6); // ma³y odstêp miêdzy ikon¹ a nazw¹
+        ImGui::SameLine(0, 6);
 
-        // Selectable bez podawania rozmiaru – rozci¹gnie siê na ca³¹ dostêpn¹ szerokoœæ
         bool selected = (m_selectedTool == SelectedTool::Build && m_selectedBuilding == i);
         if (ImGui::Selectable(data.name.c_str(), selected)) {
             m_selectedTool = SelectedTool::Build;
             m_selectedBuilding = i;
         }
 
-        // Tooltip (bez zmian)
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 25.0f);
@@ -306,5 +306,4 @@ void Gui::render() {
         }
         ImGui::End();
     }
-
 }
