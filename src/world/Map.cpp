@@ -657,29 +657,32 @@ void Map::save(std::ofstream& file) const {
 }
 
 void Map::load(std::ifstream& file) {
+    // --- WCZYTAJ PODSTAWOWE DANE MAPY ---
     file.read((char*)&width, sizeof(width));
     file.read((char*)&height, sizeof(height));
 
+    // --- WCZYTAJ TILE ---
     size_t tileCount;
     file.read((char*)&tileCount, sizeof(tileCount));
-
     tiles.resize(tileCount);
 
     for (auto& tile : tiles) {
         tile.load(file);
     }
 
+    // --- WCZYTAJ STRUKTURY ---
     size_t count;
     file.read((char*)&count, sizeof(count));
 
+    // WYCZYŚĆ ISTNIEJĄCE STRUKTURY
     structures.clear();
+    structures.reserve(count);
 
     for (size_t i = 0; i < count; i++) {
         StructureType type;
         file.read((char*)&type, sizeof(type));
 
         std::unique_ptr<Structure> s;
-
         switch (type) {
         case StructureType::SolarPanel:
             s = std::make_unique<SolarPanel>(0, 0);
@@ -697,23 +700,60 @@ void Map::load(std::ifstream& file) {
             continue;
         }
 
+        // WCZYTAJ DANE STRUKTURY
         s->load(file);
+
+        // DODAJ DO WEKTORA
         structures.push_back(std::move(s));
     }
 
+    // --- PRZYPISZ STRUKTURY DO TILE'ÓW ---
+    // Najpierw wyczyść wszystkie tile
     for (auto& tile : tiles) {
         tile.setStructure(nullptr);
         tile.setOccupied(false);
     }
 
+    // Potem przypisz struktury
     for (auto& s : structures) {
+        if (!s) continue;
+
         int x = s->getX();
         int y = s->getY();
+        int xOff = s->getXOffset();
+        int yOff = s->getYOffset();
 
-        Tile& tile = getTile(x, y);
-        tile.setStructure(s.get());
-        tile.setOccupied(true);
+        // Sprawdź, czy struktura mieści się w mapie
+        if (x < 0 || x >= width || y < 0 || y >= height) continue;
+
+        // Przypisz strukturę do wszystkich tile'ów, które zajmuje
+        for (int row = 0; row < yOff; ++row) {
+            for (int col = 0; col < xOff; ++col) {
+                int tileX = x - col;
+                int tileY = y - row;
+                if (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height) {
+                    Tile& tile = getTile(tileX, tileY);
+                    tile.setStructure(s.get());
+                    tile.setOccupied(true);
+                }
+            }
+        }
     }
 
+    // --- RESETUJ STAN RUR PRZED REBUILD ---
+    for (auto& s : structures) {
+        if (s && s->isPipe()) {
+            Pipe* pipe = static_cast<Pipe*>(s.get());
+            pipe->network = nullptr;
+            pipe->setConnectionMask(0);
+            // NIE resetuj materialType - jest wczytany z pliku!
+        }
+    }
+
+    // --- ODBUDUJ SIECI OD ZERA ---
     rebuildNetworks();
+
+    // --- DODATKOWE: SPRAWDŹ, CZY STRUKTURY SĄ POPRAWNIE ZAŁADOWANE ---
+    // (opcjonalnie, dla debugowania)
+    // std::cout << "Załadowano " << structures.size() << " struktur" << std::endl;
 }
