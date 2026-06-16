@@ -8,6 +8,7 @@
 #include "structures/SolarPanel.h"
 #include "entities/Pipe.h"
 #include "structures/IceMelter.h"
+#include "structures/WaterMagazine.h"   // <- NOWY
 
 #include <string>
 #include <vector>
@@ -29,8 +30,9 @@ namespace {
         SolarPanel panel(0, 0);
         Pipe pipe(0, 0);
         IceMelter melter(0, 0);
+        WaterMagazine magazine(0, 0);   // <- NOWY
 
-        s_BuildingData.resize(3);
+        s_BuildingData.resize(4);       // 3 -> 4
         s_BuildingData[0] = { "Solar Panel",
                               "Generates energy from sunlight.",
                               "Produces: 2 Energy/s\nNo consumption",
@@ -43,6 +45,10 @@ namespace {
                               "Melts ice into water.",
                               "Consumes: 1 Energy/s\nProduces: 1 Water/s",
                               melter.getTextureId() };
+        s_BuildingData[3] = { "Water Magazine",                   // <- NOWY
+                              "Stores large amounts of water.",
+                              "Capacity: 3000 Water\nInput: West port\nOutput: East port",
+                              magazine.getTextureId() };
     }
 
     const BuildingUIData& GetBuildingData(int type) {
@@ -70,7 +76,6 @@ void Gui::init(World* world, Renderer* renderer) {
 
     ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();
-
     style.WindowRounding = 6.0f;
     style.FrameRounding = 5.0f;
     style.GrabRounding = 6.0f;
@@ -89,23 +94,18 @@ void Gui::init(World* world, Renderer* renderer) {
     style.Colors[ImGuiCol_WindowBg] = ImVec4(0.03f, 0.05f, 0.08f, 0.88f);
     style.Colors[ImGuiCol_Border] = ImVec4(0.10f, 0.70f, 0.95f, 0.35f);
     style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-
     style.Colors[ImGuiCol_TitleBg] = ImVec4(0.02f, 0.05f, 0.09f, 1.0f);
     style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.03f, 0.10f, 0.16f, 1.0f);
     style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.02f, 0.05f, 0.09f, 0.95f);
-
     style.Colors[ImGuiCol_FrameBg] = ImVec4(0.07f, 0.11f, 0.16f, 1.0f);
     style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.10f, 0.18f, 0.26f, 1.0f);
     style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.12f, 0.22f, 0.32f, 1.0f);
-
     style.Colors[ImGuiCol_Button] = ImVec4(0.07f, 0.14f, 0.22f, 1.0f);
     style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.10f, 0.32f, 0.44f, 1.0f);
     style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.12f, 0.40f, 0.55f, 1.0f);
-
     style.Colors[ImGuiCol_Header] = ImVec4(0.08f, 0.18f, 0.28f, 1.0f);
     style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.10f, 0.30f, 0.44f, 1.0f);
     style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.12f, 0.38f, 0.55f, 1.0f);
-
     style.Colors[ImGuiCol_Separator] = ImVec4(0.10f, 0.70f, 0.95f, 0.60f);
     style.Colors[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.70f, 0.95f, 0.85f);
     style.Colors[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.70f, 0.95f, 1.00f);
@@ -115,24 +115,22 @@ void Gui::init(World* world, Renderer* renderer) {
     style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.10f, 0.22f, 0.32f, 1.0f);
     style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.10f, 0.32f, 0.44f, 1.0f);
     style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.12f, 0.40f, 0.55f, 1.0f);
-
     style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.10f, 0.70f, 0.95f, 0.25f);
     style.Colors[ImGuiCol_NavHighlight] = ImVec4(0.10f, 0.70f, 0.95f, 0.60f);
 }
 
 void Gui::render() {
-
     const float screenWidth = static_cast<float>(GetScreenWidth());
     const float screenHeight = static_cast<float>(GetScreenHeight());
 
     // ---------- MENU GÓRNE ----------
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("Game")) {
-            if (ImGui::MenuItem("Save")) { /* TODO: save */ }
-            if (ImGui::MenuItem("Load")) { /* TODO: load */ }
+            if (ImGui::MenuItem("Save")) {}
+            if (ImGui::MenuItem("Load")) {}
             ImGui::Separator();
             if (ImGui::MenuItem("Exit to Menu")) {
-                m_exitToMenu = true;   // g³ówna pêtla przechwyci tê flagê
+                m_exitToMenu = true;
             }
             ImGui::EndMenu();
         }
@@ -205,7 +203,7 @@ void Gui::render() {
     InitBuildingData();
     const TextureManager& texMan = m_renderer->getTextureManager();
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {   // <- 3 -> 4
         const BuildingUIData& data = GetBuildingData(i);
         const Texture2D& tex = texMan.StuctureTexturesInfo.at(data.textureKey);
 
