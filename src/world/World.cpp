@@ -1,6 +1,7 @@
 #include "World.h"
 #include <stdexcept>
 #include <fstream>
+#include "utils/SaveSystem.h"
 
 
 void World::init(int mapWidth, int mapHeight, const WorldGenSettings& settings) {
@@ -139,4 +140,14 @@ void World::load(const std::string& path) {
 	map->load(file);
 
 	file.close();
+}
+
+void World::saveToSlot(int slot) {
+	std::string path = SaveSystem::getSavePath(slot);
+	save(path);
+}
+
+void World::loadFromSlot(int slot) {
+	std::string path = SaveSystem::getSavePath(slot);
+	load(path);
 }

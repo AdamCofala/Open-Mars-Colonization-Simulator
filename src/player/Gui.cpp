@@ -121,12 +121,19 @@ void Gui::render() {
     // ---------- MENU GÓRNE ----------
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("Game")) {
-            if (ImGui::MenuItem("Save")) {
-                m_world->save("save.dat");
-            }
+            if (ImGui::BeginMenu("Save / Load")) {
 
-            if (ImGui::MenuItem("Load")) {
-                m_world->load("save.dat");
+                if (ImGui::MenuItem("Save Slot 1")) m_world->saveToSlot(1);
+                if (ImGui::MenuItem("Save Slot 2")) m_world->saveToSlot(2);
+                if (ImGui::MenuItem("Save Slot 3")) m_world->saveToSlot(3);
+
+                ImGui::Separator();
+
+                if (ImGui::MenuItem("Load Slot 1")) m_world->loadFromSlot(1);
+                if (ImGui::MenuItem("Load Slot 2")) m_world->loadFromSlot(2);
+                if (ImGui::MenuItem("Load Slot 3")) m_world->loadFromSlot(3);
+
+                ImGui::EndMenu();
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit to Menu")) {
