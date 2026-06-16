@@ -19,6 +19,7 @@ enum class GameState {
 
 static GameState    g_state = GameState::StartScreen;
 static StartScreen* g_startScreen = nullptr;
+static bool          g_shouldQuit = false;
 
 static Renderer* renderer = nullptr;
 static World* world = nullptr;
@@ -42,9 +43,10 @@ void initGame(const WorldGenSettings& settings) {
 }
 
 void shutdownGame() {
-    if (gui) { gui->shutdown();      delete gui;          gui = nullptr; }
-    if (renderer) { renderer->shutdown(); delete renderer;     renderer = nullptr; }
-    if (world) { world->shutdown();    delete world;        world = nullptr; }
+    if (gui) { gui->shutdown(); delete gui; gui = nullptr; }
+
+    if (renderer) { renderer->shutdown(); delete renderer; renderer = nullptr; }
+    if (world) { world->shutdown(); delete world; world = nullptr; }
     if (inputManager) { delete inputManager; inputManager = nullptr; }
 }
 
@@ -52,7 +54,6 @@ void shutdownGame() {
 
 void init() {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Open Mars 1.0.0-alpha.1");
-    HideCursor();
 
     rlImGuiSetup(true);
 
@@ -73,7 +74,18 @@ void draw() {
     BeginDrawing();
     ClearBackground(BLACK);
 
+    // Dynamicznie zarządzamy kursorem systemowym:
+    // W menu startowym chcemy go widzieć. W grze ma być ukryty, bo renderer rysuje własny.
+    if (g_state == GameState::StartScreen) {
+        ShowCursor();
+    }
+    else if (g_state == GameState::Playing) {
+        HideCursor();
+    }
+
     rlImGuiBegin();
+
+    bool wantExitToMenu = false;
 
     if (g_state == GameState::StartScreen) {
         StartScreen::Action action = g_startScreen->render();
@@ -89,7 +101,6 @@ void draw() {
         }
         else if (action == StartScreen::Action::LoadWorld) {
             std::string path = g_startScreen->getLoadPath();
-            // NYI — podepnij tu deserializację
             (void)path;
 
             WorldGenSettings defaults;
@@ -101,35 +112,36 @@ void draw() {
             g_state = GameState::Playing;
         }
         else if (action == StartScreen::Action::Quit) {
-            CloseWindow();
+            g_shouldQuit = true;
         }
     }
     else if (g_state == GameState::Playing) {
         renderer->draw(*world);
-
         DrawFPS(10, 30);
-
         gui->render();
 
-        // --- Obsługa "Exit to Menu" z GUI ---
         if (gui->shouldExitToMenu()) {
-            shutdownGame();                      // usuwa gui, renderer, world, inputManager
-
-            g_startScreen = new StartScreen();
-            g_startScreen->init();
-
-            g_state = GameState::StartScreen;
+            wantExitToMenu = true;
         }
     }
 
-    rlImGuiEnd();   // <-- ImGui rysuje swoje okna tutaj
+    rlImGuiEnd();
 
-    // Kursor musi być narysowany po ImGui, żeby był zawsze na wierzchu
+    // Rysowanie własnego kursora gry na samym wierzchu (po ImGui)
     if (g_state == GameState::Playing && renderer != nullptr) {
         renderer->drawCursor();
     }
 
     EndDrawing();
+
+    if (wantExitToMenu) {
+        shutdownGame();
+
+        g_startScreen = new StartScreen();
+        g_startScreen->init();
+
+        g_state = GameState::StartScreen;
+    }
 }
 
 void clean() {
@@ -149,7 +161,7 @@ void clean() {
 int main() {
     init();
 
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose() && !g_shouldQuit) {
         float dt = GetFrameTime();
         update(dt);
         draw();

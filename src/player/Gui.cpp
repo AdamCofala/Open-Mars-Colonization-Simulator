@@ -63,16 +63,9 @@ ImVec4 Gui::SelectedColor(bool selected) const {
 void Gui::init(World* world, Renderer* renderer) {
     m_world = world;
     m_renderer = renderer;
-    rlImGuiBeginInitImGui();
+
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
-
-    ImFont* font = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/CascadiaCode.ttf", 17.0f);
-    if (!font) font = io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/consola.ttf", 17.0f);
-    if (!font) io.Fonts->AddFontDefault();
-
-    io.FontGlobalScale = 1.0f;
-    rlImGuiEndInitImGui();
 
     ImGui::StyleColorsDark();
     ImGuiStyle& style = ImGui::GetStyle();
@@ -123,6 +116,8 @@ void Gui::render() {
     const float screenWidth = static_cast<float>(GetScreenWidth());
     const float screenHeight = static_cast<float>(GetScreenHeight());
 
+    static bool s_showExitConfirm = false;
+
     // ---------- MENU GÓRNE ----------
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("Game")) {
@@ -130,7 +125,7 @@ void Gui::render() {
             if (ImGui::MenuItem("Load")) {}
             ImGui::Separator();
             if (ImGui::MenuItem("Exit to Menu")) {
-                m_exitToMenu = true;
+                s_showExitConfirm = true;   // najpierw pytamy o potwierdzenie
             }
             ImGui::EndMenu();
         }
@@ -303,5 +298,38 @@ void Gui::render() {
             ImGui::TextDisabled("Version 1.0.0-alpha.1");
         }
         ImGui::End();
+    }
+
+    if (s_showExitConfirm) {
+        ImGui::OpenPopup("Exit to Menu?");
+        s_showExitConfirm = false;
+    }
+
+    ImGui::SetNextWindowPos(ImVec2(screenWidth * 0.5f, screenHeight * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    if (ImGui::BeginPopupModal("Exit to Menu?", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Are you sure you want to exit to the main menu?");
+        ImGui::TextColored(ImVec4(0.95f, 0.55f, 0.2f, 1.0f), "Any unsaved progress will be lost.");
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        const float buttonWidth = 120.0f;
+        ImGui::SetCursorPosX((ImGui::GetWindowWidth() - (buttonWidth * 2.0f + ImGui::GetStyle().ItemSpacing.x)) * 0.5f);
+
+        if (ImGui::Button("Cancel", ImVec2(buttonWidth, 0))) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.55f, 0.15f, 0.15f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.70f, 0.20f, 0.20f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.45f, 0.10f, 0.10f, 1.0f));
+        if (ImGui::Button("Exit", ImVec2(buttonWidth, 0))) {
+            m_exitToMenu = true;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::PopStyleColor(3);
+
+        ImGui::EndPopup();
     }
 }
