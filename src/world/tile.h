@@ -43,4 +43,7 @@ public:
 
     void setStructure(Structure* newStructure);
     Structure* getStructure() const;
+
+    void save(std::ofstream& file) const;
+    void load(std::ifstream& file);
 };

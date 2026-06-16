@@ -1,4 +1,5 @@
-#include "Inventory.h"
+﻿#include "Inventory.h"
+#include <fstream>
 
 void Inventory::init() {
     items.clear();
@@ -61,6 +62,56 @@ float Inventory::getAmount(MaterialType type) const {
         return it->second;
     }
     return 0.0f;
+}
+
+void Inventory::save(std::ofstream& file) const {
+    size_t itemsSize = items.size();
+    file.write((char*)&itemsSize, sizeof(itemsSize));
+
+    for (const auto& [type, amount] : items) {
+        file.write((char*)&type, sizeof(type));
+        file.write((char*)&amount, sizeof(amount));
+    }
+
+    size_t capSize = maxCapacities.size();
+    file.write((char*)&capSize, sizeof(capSize));
+
+    for (const auto& [type, cap] : maxCapacities) {
+        file.write((char*)&type, sizeof(type));
+        file.write((char*)&cap, sizeof(cap));
+    }
+}
+
+void Inventory::load(std::ifstream& file) {
+    size_t itemsSize;
+    file.read((char*)&itemsSize, sizeof(itemsSize));
+
+    items.clear();
+
+    for (size_t i = 0; i < itemsSize; i++) {
+        MaterialType type;
+        float amount;
+
+        file.read((char*)&type, sizeof(type));
+        file.read((char*)&amount, sizeof(amount));
+
+        items[type] = amount;
+    }
+
+    size_t capSize;
+    file.read((char*)&capSize, sizeof(capSize));
+
+    maxCapacities.clear();
+
+    for (size_t i = 0; i < capSize; i++) {
+        MaterialType type;
+        float cap;
+
+        file.read((char*)&type, sizeof(type));
+        file.read((char*)&cap, sizeof(cap));
+
+        maxCapacities[type] = cap;
+    }
 }
 
 void Inventory::clear() {

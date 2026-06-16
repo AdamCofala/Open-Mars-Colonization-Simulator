@@ -19,6 +19,13 @@ enum Direction {
     NORTH_WEST = 3
 };
 
+enum class StructureType {
+    SolarPanel,
+    Pipe,
+    IceMelter,
+    WaterMagazine
+};
+
 struct StructurePort {
     int offsetX = 0;
     int offsetY = 0;

@@ -53,4 +53,9 @@ public:
     const std::vector<StructurePort>& getPorts() const;
     PortType getPortAtTile(int worldX, int worldY, Direction edgeDir) const;
     MaterialType getMaterialAtPort(int worldX, int worldY, Direction edgeDir) const;
+
+    virtual StructureType getType() const = 0;
+
+    virtual void save(std::ofstream& file) const;
+    virtual void load(std::ifstream& file);
 };

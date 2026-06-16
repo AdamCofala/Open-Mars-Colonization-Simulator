@@ -1,5 +1,6 @@
 #pragma once
 #include <unordered_map>
+#include <fstream>
 #include "Enums.h"
 
 class Inventory {
@@ -17,6 +18,9 @@ public:
     bool subResource(MaterialType type, float amount);     
     bool hasResource(MaterialType type, float amount) const;
     float getAmount(MaterialType type) const;
+
+    void save(std::ofstream& file) const;
+    void load(std::ifstream& file);
 
     void clear();
 };

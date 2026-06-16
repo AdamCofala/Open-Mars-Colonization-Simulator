@@ -1,6 +1,7 @@
 #pragma once
 #include "entities/Structure.h"
 #include "entities/Enums.h"
+
 class SolarPanel : public Structure {
 public:
     SolarPanel(int x, int y) {
@@ -19,6 +20,11 @@ public:
 
         m_ports.push_back(outputPort);
     }
+
+    StructureType getType() const override {
+        return StructureType::SolarPanel;
+    }
+
     void update(float dt, Map& map) override {
         Structure::update(dt, map);
     }

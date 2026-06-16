@@ -3,6 +3,11 @@
 #include <stdexcept>
 #include <random>
 #include <queue>
+#include <fstream>
+#include "../structures/SolarPanel.h"
+#include "../entities/Pipe.h"
+#include "../structures/IceMelter.h"
+#include "../structures/WaterMagazine.h"
 
 void Map::init(int w, int h) {
     if (w <= 0 || h <= 0) {
@@ -643,6 +648,90 @@ void Map::removeStructureAt(int tileX, int tileY) {
         for (int col = 0; col < xOff; ++col) {
             getTile(baseX - col, baseY - row).setStructure(nullptr);
         }
+    }
+
+    rebuildNetworks();
+}
+
+void Map::save(std::ofstream& file) const {
+    file.write((char*)&width, sizeof(width));
+    file.write((char*)&height, sizeof(height));
+
+    size_t tileCount = tiles.size();
+    file.write((char*)&tileCount, sizeof(tileCount));
+
+    for (const auto& tile : tiles) {
+        tile.save(file);
+    }
+
+    size_t count = structures.size();
+    file.write((char*)&count, sizeof(count));
+
+    for (const auto& s : structures) {
+        StructureType type = s->getType();
+        file.write((char*)&type, sizeof(type));
+
+        s->save(file);
+    }
+}
+
+void Map::load(std::ifstream& file) {
+    file.read((char*)&width, sizeof(width));
+    file.read((char*)&height, sizeof(height));
+
+    size_t tileCount;
+    file.read((char*)&tileCount, sizeof(tileCount));
+
+    tiles.resize(tileCount);
+
+    for (auto& tile : tiles) {
+        tile.load(file);
+    }
+
+    size_t count;
+    file.read((char*)&count, sizeof(count));
+
+    structures.clear();
+
+    for (size_t i = 0; i < count; i++) {
+        StructureType type;
+        file.read((char*)&type, sizeof(type));
+
+        std::unique_ptr<Structure> s;
+
+        switch (type) {
+        case StructureType::SolarPanel:
+            s = std::make_unique<SolarPanel>(0, 0);
+            break;
+        case StructureType::Pipe:
+            s = std::make_unique<Pipe>(0, 0);
+            break;
+        case StructureType::IceMelter:
+            s = std::make_unique<IceMelter>(0, 0);
+            break;
+        case StructureType::WaterMagazine:
+            s = std::make_unique<WaterMagazine>(0, 0);
+            break;
+        default:
+            continue;
+        }
+
+        s->load(file);
+        structures.push_back(std::move(s));
+    }
+
+    for (auto& tile : tiles) {
+        tile.setStructure(nullptr);
+        tile.setOccupied(false);
+    }
+
+    for (auto& s : structures) {
+        int x = s->getX();
+        int y = s->getY();
+
+        Tile& tile = getTile(x, y);
+        tile.setStructure(s.get());
+        tile.setOccupied(true);
     }
 
     rebuildNetworks();

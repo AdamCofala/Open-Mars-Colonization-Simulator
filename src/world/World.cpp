@@ -1,5 +1,6 @@
 #include "World.h"
 #include <stdexcept>
+#include <fstream>
 
 
 void World::init(int mapWidth, int mapHeight, const WorldGenSettings& settings) {
@@ -90,4 +91,52 @@ int World::getMonth() const {
 
 int World::getYear() const {
 	return year;
+}
+
+void World::save(const std::string& path) {
+	std::ofstream file(path, std::ios::binary);
+	if (!file) return;
+
+	int version = 1;
+	file.write((char*)&version, sizeof(version));
+
+	file.write((char*)&day, sizeof(day));
+	file.write((char*)&month, sizeof(month));
+	file.write((char*)&year, sizeof(year));
+
+	file.write((char*)&totalEnergy, sizeof(totalEnergy));
+	file.write((char*)&totalEnergyCapacity, sizeof(totalEnergyCapacity));
+
+	file.write((char*)&totalWater, sizeof(totalWater));
+	file.write((char*)&totalWaterCapacity, sizeof(totalWaterCapacity));
+
+	globalInventory.save(file);
+
+	map->save(file);
+
+	file.close();
+}
+
+void World::load(const std::string& path) {
+	std::ifstream file(path, std::ios::binary);
+	if (!file) return;
+
+	int version;
+	file.read((char*)&version, sizeof(version));
+
+	file.read((char*)&day, sizeof(day));
+	file.read((char*)&month, sizeof(month));
+	file.read((char*)&year, sizeof(year));
+
+	file.read((char*)&totalEnergy, sizeof(totalEnergy));
+	file.read((char*)&totalEnergyCapacity, sizeof(totalEnergyCapacity));
+
+	file.read((char*)&totalWater, sizeof(totalWater));
+	file.read((char*)&totalWaterCapacity, sizeof(totalWaterCapacity));
+
+	globalInventory.load(file);
+
+	map->load(file);
+
+	file.close();
 }

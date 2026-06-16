@@ -1,6 +1,7 @@
 #pragma once
 #include "entities/Structure.h"
 #include "entities/Enums.h"
+
 class IceMelter : public Structure {
 public:
     IceMelter(int x, int y) {
@@ -27,6 +28,11 @@ public:
         energyInPort.dir = Direction::SOUTH_EAST;
         m_ports.push_back(energyInPort);
     }
+
+    StructureType getType() const override {
+        return StructureType::IceMelter;
+    }
+
     void update(float dt, Map& map) override {
         Structure::update(dt, map);
     }

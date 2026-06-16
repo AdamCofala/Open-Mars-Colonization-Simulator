@@ -121,8 +121,13 @@ void Gui::render() {
     // ---------- MENU GÓRNE ----------
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("Game")) {
-            if (ImGui::MenuItem("Save")) {}
-            if (ImGui::MenuItem("Load")) {}
+            if (ImGui::MenuItem("Save")) {
+                m_world->save("save.dat");
+            }
+
+            if (ImGui::MenuItem("Load")) {
+                m_world->load("save.dat");
+            }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit to Menu")) {
                 s_showExitConfirm = true;   // najpierw pytamy o potwierdzenie

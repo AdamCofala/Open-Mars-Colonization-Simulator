@@ -41,4 +41,7 @@ public:
     MaterialType computeVirtualPipeType(int px, int py) const;
 
     void removeStructureAt(int tileX, int tileY);
+
+    void save(std::ofstream& file) const;
+    void load(std::ifstream& file);
 };

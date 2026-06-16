@@ -36,4 +36,7 @@ public:
     float getTotalEnergyCapacity() const { return totalEnergyCapacity; }
     float getTotalWater()          const { return totalWater; }
     float getTotalWaterCapacity()  const { return totalWaterCapacity; }
+
+    void save(const std::string& path);
+    void load(const std::string& path);
 };

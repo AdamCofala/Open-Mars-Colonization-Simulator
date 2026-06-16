@@ -20,4 +20,8 @@ public:
 
     int getConnectionMask() const { return connectionMask; }
     void setConnectionMask(int mask) { connectionMask = mask; }
+
+    StructureType getType() const override {
+        return StructureType::Pipe;
+    }
 };

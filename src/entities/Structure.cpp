@@ -93,3 +93,35 @@ PortType Structure::getPortAtTile(int pipeWorldX, int pipeWorldY, Direction edge
     }
     return PortType::NONE;
 }
+
+void Structure::save(std::ofstream& file) const {
+    file.write((char*)&x, sizeof(x));
+    file.write((char*)&y, sizeof(y));
+
+    file.write((char*)&xOffset, sizeof(xOffset));
+    file.write((char*)&yOffset, sizeof(yOffset));
+
+    size_t len = textureId.size();
+    file.write((char*)&len, sizeof(len));
+    file.write(textureId.c_str(), len);
+
+    inputInventory.save(file);
+    outputInventory.save(file);
+}
+
+void Structure::load(std::ifstream& file) {
+    file.read((char*)&x, sizeof(x));
+    file.read((char*)&y, sizeof(y));
+
+    file.read((char*)&xOffset, sizeof(xOffset));
+    file.read((char*)&yOffset, sizeof(yOffset));
+
+    size_t len;
+    file.read((char*)&len, sizeof(len));
+
+    textureId.resize(len);
+    file.read(&textureId[0], len);
+
+    inputInventory.load(file);
+    outputInventory.load(file);
+}
