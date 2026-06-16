@@ -342,9 +342,9 @@ void StartScreen::renderCreate(Action& out) {
 
         // Dynamiczne przyciski
         float avail = ImGui::GetContentRegionAvail().x;
-        float btnW = (avail - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
+        float btnW =  100;
 
-        ImGui::SetCursorPosX(0);
+        ImGui::SetCursorPosX(60.0f);
         if (bigButton("< Back", btnW)) {
             m_screen = Screen::Main;
         }
