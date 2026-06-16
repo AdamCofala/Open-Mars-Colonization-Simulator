@@ -179,11 +179,18 @@ void Map::generateTerrain(const WorldGenSettings& settings) {
     }
 }
 
-Tile& Map::getTile(int x, int y) const {
-    if (x < 0 || x >= width || y < 0 || y >= height) {
+Tile& Map::getTile(int x, int y) {
+    if (x < 0 || x >= static_cast<int>(width) || y < 0 || y >= static_cast<int>(height)) {
         throw std::out_of_range("Tile coordinates out of range.");
     }
-    return const_cast<Tile&>(tiles[y * width + x]);
+    return tiles[y * width + x];
+}
+
+const Tile& Map::getTile(int x, int y) const {
+    if (x < 0 || x >= static_cast<int>(width) || y < 0 || y >= static_cast<int>(height)) {
+        throw std::out_of_range("Tile coordinates out of range.");
+    }
+    return tiles[y * width + x];
 }
 
 std::vector<std::unique_ptr<Structure>>& Map::getStructures() {
@@ -204,14 +211,13 @@ bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset, StructureTyp
         for (int dx = 0; dx < xOffset; ++dx) {
             int tileX = x - dx;
             int tileY = y - dy;
-            if (tileX < 0 || tileX >= width || tileY < 0 || tileY >= height) {
+            if (tileX < 0 || tileX >= static_cast<int>(width) || tileY < 0 || tileY >= static_cast<int>(height)) {
                 return false;
             }
             const Tile& tile = getTile(tileX, tileY);
             if (tile.isOccupied()) return false;
 
             if (type == StructureType::Pipe) {
-                // Rury – tylko nachylenie, dowolny typ podłoża
                 auto slope = tile.getSlopeData();
                 bool flat = tile.isFlat();
                 bool slope1100 = (slope[0] == 1 && slope[1] == 1 && slope[2] == 0 && slope[3] == 0);
@@ -221,15 +227,12 @@ bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset, StructureTyp
                 if (!flat && !slope1100 && !slope1001 && !slope0110 && !slope0011) return false;
             }
             else {
-                // Wszystkie inne struktury muszą być na płaskim terenie
                 if (!tile.isFlat()) return false;
 
-                // Sprawdzamy typ podłoża
                 if (type == StructureType::IceMelter) {
                     if (tile.getType() != TileType::Ice) return false;
                 }
                 else {
-                    // SolarPanel, WaterMagazine i ewentualne przyszłe – tylko Normal
                     if (tile.getType() != TileType::Normal) return false;
                 }
             }
@@ -290,7 +293,7 @@ void Map::rebuildNetworks() {
             for (int i = 0; i < 4; ++i) {
                 int nx = px + directionsX[i];
                 int ny = py + directionsY[i];
-                if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+                if (nx < 0 || nx >= static_cast<int>(width) || ny < 0 || ny >= static_cast<int>(height)) continue;
 
                 Structure* neighbor = getTile(nx, ny).getStructure();
                 if (!neighbor) continue;
@@ -322,6 +325,7 @@ void Map::rebuildNetworks() {
         }
     }
 
+    // --- FAZA 1: OBLICZANIE MASKI POŁĄCZEŃ ---
     for (Pipe* p : allPipes) {
         int px = p->getX();
         int py = p->getY();
@@ -341,7 +345,7 @@ void Map::rebuildNetworks() {
         for (int i = 0; i < 4; ++i) {
             int nx = px + directionsX[i];
             int ny = py + directionsY[i];
-            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+            if (nx >= 0 && nx < static_cast<int>(width) && ny >= 0 && ny < static_cast<int>(height)) {
                 Structure* neighbor = getTile(nx, ny).getStructure();
                 if (neighbor) {
                     if (neighbor->isPipe()) {
@@ -381,12 +385,13 @@ void Map::rebuildNetworks() {
         p->setConnectionMask(mask);
     }
 
+    // --- FAZA 2: BUDOWANIE LOGICZNYCH SIECI ---
     for (Pipe* p : allPipes) {
         if (p->network != nullptr) continue;
 
         auto newNet = std::make_unique<PipeNetwork>();
         p->network = newNet.get();
-        newNet->pipes.push_back(p);
+        newNet->addPipe(p);
 
         std::vector<Pipe*> queue;
         queue.push_back(p);
@@ -402,7 +407,7 @@ void Map::rebuildNetworks() {
                 int nx = cx + directionsX[i];
                 int ny = cy + directionsY[i];
 
-                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                if (nx >= 0 && nx < static_cast<int>(width) && ny >= 0 && ny < static_cast<int>(height)) {
                     Structure* neighbor = getTile(nx, ny).getStructure();
                     if (neighbor) {
                         if (neighbor->isPipe()) {
@@ -414,7 +419,7 @@ void Map::rebuildNetworks() {
                                 if ((myType == MaterialType::NONE && hisType == MaterialType::NONE) ||
                                     (myType != MaterialType::NONE && myType == hisType)) {
                                     neighborPipe->network = newNet.get();
-                                    newNet->pipes.push_back(neighborPipe);
+                                    newNet->addPipe(neighborPipe);
                                     queue.push_back(neighborPipe);
                                 }
                             }
@@ -428,18 +433,22 @@ void Map::rebuildNetworks() {
                                 if (newNet->getMaterialType() == MaterialType::NONE)
                                     newNet->setMaterialType(portMaterial);
                                 if (newNet->getMaterialType() == portMaterial) {
-                                    if (std::find(newNet->producers.begin(), newNet->producers.end(), neighbor)
-                                        == newNet->producers.end())
-                                        newNet->producers.push_back(neighbor);
+                                    bool found = false;
+                                    for (auto* prod : newNet->getProducers()) {
+                                        if (prod == neighbor) { found = true; break; }
+                                    }
+                                    if (!found) newNet->addProducer(neighbor);
                                 }
                             }
                             if (tilePort == PortType::INPUT) {
                                 if (newNet->getMaterialType() == MaterialType::NONE)
                                     newNet->setMaterialType(portMaterial);
                                 if (newNet->getMaterialType() == portMaterial) {
-                                    if (std::find(newNet->consumers.begin(), newNet->consumers.end(), neighbor)
-                                        == newNet->consumers.end())
-                                        newNet->consumers.push_back(neighbor);
+                                    bool found = false;
+                                    for (auto* cons : newNet->getConsumers()) {
+                                        if (cons == neighbor) { found = true; break; }
+                                    }
+                                    if (!found) newNet->addConsumer(neighbor);
                                 }
                             }
                         }
@@ -458,7 +467,7 @@ void Map::updateNetworks(float dt) {
 }
 
 int Map::computePipeConnectionMask(int px, int py) const {
-    if (px < 0 || px >= width || py < 0 || py >= height) return 0;
+    if (px < 0 || px >= static_cast<int>(width) || py < 0 || py >= static_cast<int>(height)) return 0;
 
     int directionsX[4] = { 0,  1,  0, -1 };
     int directionsY[4] = { -1, 0,  1,  0 };
@@ -479,7 +488,7 @@ int Map::computePipeConnectionMask(int px, int py) const {
     for (int i = 0; i < 4; ++i) {
         int nx = px + directionsX[i];
         int ny = py + directionsY[i];
-        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+        if (nx >= 0 && nx < static_cast<int>(width) && ny >= 0 && ny < static_cast<int>(height)) {
             const Structure* neighbor = getTile(nx, ny).getStructure();
             if (neighbor) {
                 if (neighbor->isPipe()) {
@@ -513,7 +522,7 @@ int Map::computePipeConnectionMask(int px, int py) const {
 }
 
 int Map::computePipeConnectionMaskWithVirtual(int px, int py, int vx, int vy) const {
-    if (px < 0 || px >= width || py < 0 || py >= height) return 0;
+    if (px < 0 || px >= static_cast<int>(width) || py < 0 || py >= static_cast<int>(height)) return 0;
 
     int directionsX[4] = { 0,  1,  0, -1 };
     int directionsY[4] = { -1, 0,  1,  0 };
@@ -534,7 +543,7 @@ int Map::computePipeConnectionMaskWithVirtual(int px, int py, int vx, int vy) co
     for (int i = 0; i < 4; ++i) {
         int nx = px + directionsX[i];
         int ny = py + directionsY[i];
-        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+        if (nx < 0 || nx >= static_cast<int>(width) || ny < 0 || ny >= static_cast<int>(height)) continue;
 
         bool isVirtual = (nx == vx && ny == vy);
 
@@ -579,7 +588,7 @@ MaterialType Map::computeVirtualPipeType(int px, int py) const {
     for (int i = 0; i < 4; ++i) {
         int nx = px + directionsX[i];
         int ny = py + directionsY[i];
-        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+        if (nx < 0 || nx >= static_cast<int>(width) || ny < 0 || ny >= static_cast<int>(height)) continue;
         const Structure* neighbor = getTile(nx, ny).getStructure();
         if (!neighbor) continue;
 

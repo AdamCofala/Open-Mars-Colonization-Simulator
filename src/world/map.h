@@ -21,7 +21,8 @@ public:
     void init(int w, int h);
     void generateTerrain(const WorldGenSettings& settings = WorldGenSettings{});
 
-    Tile& getTile(int x, int y) const;
+    Tile& getTile(int x, int y);
+    const Tile& getTile(int x, int y) const;
 
     std::vector<std::unique_ptr<Structure>>& getStructures();
     const std::vector<std::unique_ptr<Structure>>& getStructures() const;

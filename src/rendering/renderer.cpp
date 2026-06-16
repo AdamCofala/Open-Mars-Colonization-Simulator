@@ -10,36 +10,36 @@
 #include <algorithm>
 
 void Renderer::init() {
-    if (camera)      throw std::runtime_error("Camera is already initialized!");
-    if (txt_manager) throw std::runtime_error("TextureManager is already initialized!");
-    camera = new GameCamera(IsoToScreen(0, 0));
-    txt_manager = new TextureManager();
+    if (m_camera)    throw std::runtime_error("Camera is already initialized!");
+    if (m_txtManager) throw std::runtime_error("TextureManager is already initialized!");
+    m_camera = std::make_unique<GameCamera>(IsoToScreen(0, 0));
+    m_txtManager = std::make_unique<TextureManager>();
     HideCursor();
 }
 
 void Renderer::update(float dt) {
-    camera->update(dt);
+    m_camera->update(dt);
 }
 
 void Renderer::draw(const World& world) {
-    BeginMode2D(camera->getCamera());
+    BeginMode2D(m_camera->getCamera());
     RenderTerrain(world.getMap());
     RenderStructures(world.getMap());
-    RenderSelected(world.getMap(), r_selectedTileOffset);
+    RenderSelected(world.getMap(), m_selectedTileOffset);
     EndMode2D();
 }
 
 void Renderer::setSelectedTile(Vector2 tile, Vector2 offset) {
-    r_selectedTile = tile;
-    r_selectedTileOffset = offset;
+    m_selectedTile = tile;
+    m_selectedTileOffset = offset;
 }
 
 void Renderer::setSelectedBuildingType(int typeIndex) {
-    r_selectedBuildingType = typeIndex;
+    m_selectedBuildingType = typeIndex;
 }
 
 VisibleTileBounds Renderer::getVisibleTileBounds(const Map& map) const {
-    Camera2D cam = camera->getCamera();
+    Camera2D cam = m_camera->getCamera();
     int halfW = map.getHalfWidth();
     int halfH = map.getHalfHeight();
     Vector2 corners[4] = {
@@ -92,9 +92,9 @@ void Renderer::RenderStructures(const Map& map) {
         return dA < dB;
         });
 
-    const bool placingPipe = (r_selectedBuildingType == 1 && r_selectedTile.x >= 0 && r_selectedTile.y >= 0);
-    int selX = (int)r_selectedTile.x;
-    int selY = (int)r_selectedTile.y;
+    const bool placingPipe = (m_selectedBuildingType == 1 && m_selectedTile.x >= 0 && m_selectedTile.y >= 0);
+    int selX = (int)m_selectedTile.x;
+    int selY = (int)m_selectedTile.y;
 
     for (const auto* s : sorted) {
         Vector2 pos = IsoToScreen(s->getX(), s->getY(), &map);
@@ -113,7 +113,7 @@ void Renderer::RenderStructures(const Map& map) {
 }
 
 void Renderer::RenderStruct(const Structure& structure, Vector2 pos, const Tile& baseTile, Color tint) {
-    Texture2D sourceRec = txt_manager->StuctureTexturesInfo[structure.getTextureId()];
+    Texture2D sourceRec = m_txtManager->StuctureTexturesInfo[structure.getTextureId()];
     float tileBottomY = pos.y - baseTile.getLevel() * HEIGHT_OFFSET + 31.0f;
     float drawX = pos.x - sourceRec.width / 2.0f;
     float drawY = tileBottomY - sourceRec.height;
@@ -121,13 +121,13 @@ void Renderer::RenderStruct(const Structure& structure, Vector2 pos, const Tile&
 }
 
 void Renderer::RenderPipe(int mask, Vector2 pos, const Tile& baseTile, Color tint) {
-    Rectangle sourceRec = txt_manager->PipeTexturesInfo[mask];
+    Rectangle sourceRec = m_txtManager->PipeTexturesInfo[mask];
     if (sourceRec.width == 0) {
-        sourceRec = txt_manager->PipeTexturesInfo[0];
+        sourceRec = m_txtManager->PipeTexturesInfo[0];
     }
     float drawX = pos.x - sourceRec.width / 2.0f;
     float drawY = pos.y - baseTile.getLevel() * HEIGHT_OFFSET - (sourceRec.height - 31.0f);
-    DrawTextureRec(txt_manager->pipe_atlas, sourceRec, { drawX, drawY }, tint);
+    DrawTextureRec(m_txtManager->pipe_atlas, sourceRec, { drawX, drawY }, tint);
 }
 
 int Renderer::getPipeConnectionBit(int fromX, int fromY, int toX, int toY) const {
@@ -143,13 +143,12 @@ int Renderer::getPipeConnectionBit(int fromX, int fromY, int toX, int toY) const
 }
 
 void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
-    if (r_selectedTile.x < 0 || r_selectedTile.y < 0) return;
-    int startX = (int)r_selectedTile.x;
-    int startY = (int)r_selectedTile.y;
+    if (m_selectedTile.x < 0 || m_selectedTile.y < 0) return;
+    int startX = (int)m_selectedTile.x;
+    int startY = (int)m_selectedTile.y;
 
-    // Mapowanie indeksu z GUI na StructureType
-    StructureType stype = StructureType::Pipe; // domyślnie, gdyby coś poszło nie tak
-    switch (r_selectedBuildingType) {
+    StructureType stype = StructureType::Pipe;
+    switch (m_selectedBuildingType) {
     case 0: stype = StructureType::SolarPanel; break;
     case 1: stype = StructureType::Pipe;       break;
     case 2: stype = StructureType::IceMelter;  break;
@@ -157,7 +156,7 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
     default: break;
     }
 
-    if (r_selectedTool == Gui::SelectedTool::Demolish) {
+    if (m_selectedTool == Gui::SelectedTool::Demolish) {
         const Tile& tile = map.getTile(startX, startY);
         const Structure* structure = tile.getStructure();
         if (structure) {
@@ -177,12 +176,12 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 
     bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y, stype);
 
-    if (r_selectedBuildingType >= 0) {
+    if (m_selectedBuildingType >= 0) {
         Vector2 pos = IsoToScreen(startX, startY, &map);
         const Tile& baseTile = map.getTile(startX, startY);
         Color structureTint;
 
-        if (r_selectedBuildingType == 1) {
+        if (m_selectedBuildingType == 1) {
             int mask = map.computePipeConnectionMask(startX, startY);
             std::vector<int>slope = baseTile.getSlopeData();
             bool special_valic_placement = valid_placement ||
@@ -196,7 +195,7 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
         }
         else {
             std::unique_ptr<Structure> tempStructure;
-            switch (r_selectedBuildingType) {
+            switch (m_selectedBuildingType) {
             case 0: tempStructure = std::make_unique<SolarPanel>(0, 0); break;
             case 2: tempStructure = std::make_unique<IceMelter>(0, 0);  break;
             case 3: tempStructure = std::make_unique<WaterMagazine>(0, 0); break;
@@ -211,13 +210,13 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 }
 
 GameCamera& Renderer::getGameCamera() const {
-    if (!camera) throw std::runtime_error("Camera is not initialized!");
-    return *camera;
+    if (!m_camera) throw std::runtime_error("Camera is not initialized!");
+    return *m_camera;
 }
 
 void Renderer::shutdown() {
-    if (camera) { delete camera; camera = nullptr; }
-    if (txt_manager) { delete txt_manager; txt_manager = nullptr; }
+    m_camera.reset();
+    m_txtManager.reset();
 }
 
 Vector2 Renderer::IsoToScreen(float x, float y, const Map* map) const {
@@ -244,18 +243,18 @@ void Renderer::RenderIsoTile(const Tile& tile, Vector2 pos, Color tint) const {
     Rectangle rect;
     Texture2D atlas;
     if (tile.getType() == TileType::Ice) {
-        rect = txt_manager->map_ice_to_texture(slope_vec.data());
+        rect = m_txtManager->map_ice_to_texture(slope_vec.data());
         if (rect.width == 0) {
-            rect = txt_manager->map_slope_to_texture(slope_vec.data());
-            atlas = txt_manager->tile_atlas;
+            rect = m_txtManager->map_slope_to_texture(slope_vec.data());
+            atlas = m_txtManager->tile_atlas;
         }
         else {
-            atlas = txt_manager->ice_atlas;
+            atlas = m_txtManager->ice_atlas;
         }
     }
     else {
-        rect = txt_manager->map_slope_to_texture(slope_vec.data());
-        atlas = txt_manager->tile_atlas;
+        rect = m_txtManager->map_slope_to_texture(slope_vec.data());
+        atlas = m_txtManager->tile_atlas;
     }
     float drawX = pos.x - rect.width / 2.0f;
     float drawY = pos.y - n_raised * HEIGHT_OFFSET - tile.getLevel() * HEIGHT_OFFSET;
@@ -263,10 +262,10 @@ void Renderer::RenderIsoTile(const Tile& tile, Vector2 pos, Color tint) const {
 }
 
 void Renderer::drawCursor() const {
-    if (txt_manager && txt_manager->cursor.id != 0) {
+    if (m_txtManager && m_txtManager->cursor.id != 0) {
         if (IsCursorOnScreen()) {
             Vector2 mousePos = GetMousePosition();
-            DrawTexture(txt_manager->cursor, (int)mousePos.x, (int)mousePos.y, WHITE);
+            DrawTexture(m_txtManager->cursor, (int)mousePos.x, (int)mousePos.y, WHITE);
         }
     }
 }

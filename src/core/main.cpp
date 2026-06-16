@@ -6,169 +6,150 @@
 #include "player/StartScreen.h"
 #include "imgui.h"
 #include "rlImGui.h"
+#include <memory>
 
 static constexpr unsigned int WINDOW_WIDTH = 1280;
 static constexpr unsigned int WINDOW_HEIGHT = 720;
 
-// ─── Global state ─────────────────────────────────────────────────────────────
 
 enum class GameState {
     StartScreen,
     Playing
 };
 
-static GameState    g_state = GameState::StartScreen;
-static StartScreen* g_startScreen = nullptr;
-static bool          g_shouldQuit = false;
+class Game {
+public:
+    Game() = default;
 
-static Renderer* renderer = nullptr;
-static World* world = nullptr;
-static InputManager* inputManager = nullptr;
-static Gui* gui = nullptr;
+    void init() {
+        InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Open Mars 1.0.0-alpha.1");
+        rlImGuiSetup(true);
 
-// ─── Game lifecycle ───────────────────────────────────────────────────────────
-
-void initGame(const WorldGenSettings& settings) {
-    renderer = new Renderer();
-    renderer->init();
-
-    world = new World();
-    world->init(settings.mapWidth, settings.mapHeight, settings);
-
-    gui = new Gui();
-    gui->init(world, renderer);
-
-    inputManager = new InputManager();
-    inputManager->init(&world->getMap(), renderer, gui);
-}
-
-void shutdownGame() {
-    if (gui) { gui->shutdown(); delete gui; gui = nullptr; }
-
-    if (renderer) { renderer->shutdown(); delete renderer; renderer = nullptr; }
-    if (world) { world->shutdown(); delete world; world = nullptr; }
-    if (inputManager) { delete inputManager; inputManager = nullptr; }
-}
-
-// ─── Init / update / draw ─────────────────────────────────────────────────────
-
-void init() {
-    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Open Mars 1.0.0-alpha.1");
-
-    rlImGuiSetup(true);
-
-    g_startScreen = new StartScreen();
-    g_startScreen->init();
-}
-
-void update(float dt) {
-    if (g_state == GameState::Playing) {
-        inputManager->update();
-        float speed = gui ? gui->getGameSpeed() : 1.0f;
-        world->update(dt * speed);
-        renderer->update(dt);
-    }
-}
-
-void draw() {
-    BeginDrawing();
-    ClearBackground(BLACK);
-
-    // Dynamicznie zarządzamy kursorem systemowym:
-    // W menu startowym chcemy go widzieć. W grze ma być ukryty, bo renderer rysuje własny.
-    if (g_state == GameState::StartScreen) {
-        ShowCursor();
-    }
-    else if (g_state == GameState::Playing) {
-        HideCursor();
+        m_startScreen = std::make_unique<StartScreen>();
+        m_startScreen->init();
+        m_state = GameState::StartScreen;
     }
 
-    rlImGuiBegin();
-
-    bool wantExitToMenu = false;
-
-    if (g_state == GameState::StartScreen) {
-        StartScreen::Action action = g_startScreen->render();
-
-        if (action == StartScreen::Action::CreateWorld) {
-            WorldGenSettings settings = g_startScreen->getGenSettings();
-            g_startScreen->shutdown();
-            delete g_startScreen;
-            g_startScreen = nullptr;
-
-            initGame(settings);
-            g_state = GameState::Playing;
-        }
-        else if (action == StartScreen::Action::LoadWorld) {
-            std::string path = g_startScreen->getLoadPath();
-            (void)path;
-
-            WorldGenSettings defaults;
-            g_startScreen->shutdown();
-            delete g_startScreen;
-            g_startScreen = nullptr;
-
-            initGame(defaults);
-            g_state = GameState::Playing;
-        }
-        else if (action == StartScreen::Action::Quit) {
-            g_shouldQuit = true;
-        }
-    }
-    else if (g_state == GameState::Playing) {
-        renderer->draw(*world);
-        DrawFPS(10, 30);
-        gui->render();
-
-        if (gui->shouldExitToMenu()) {
-            wantExitToMenu = true;
+    void update(float dt) {
+        if (m_state == GameState::Playing) {
+            m_inputManager->update();
+            float speed = m_gui ? m_gui->getGameSpeed() : 1.0f;
+            m_world->update(dt * speed);
+            m_renderer->update(dt);
         }
     }
 
-    rlImGuiEnd();
+    void draw() {
+        BeginDrawing();
+        ClearBackground(BLACK);
 
-    // Rysowanie własnego kursora gry na samym wierzchu (po ImGui)
-    if (g_state == GameState::Playing && renderer != nullptr) {
-        renderer->drawCursor();
+        if (m_state == GameState::StartScreen) {
+            ShowCursor();
+        }
+        else if (m_state == GameState::Playing) {
+            HideCursor();
+        }
+
+        rlImGuiBegin();
+
+        if (m_state == GameState::StartScreen) {
+            StartScreen::Action action = m_startScreen->render();
+
+            if (action == StartScreen::Action::CreateWorld) {
+                WorldGenSettings settings = m_startScreen->getGenSettings();
+                m_startScreen->shutdown();
+                m_startScreen.reset();
+                initGame(settings);
+                m_state = GameState::Playing;
+            }
+            else if (action == StartScreen::Action::LoadWorld) {
+                WorldGenSettings defaults;
+                m_startScreen->shutdown();
+                m_startScreen.reset();
+                initGame(defaults);
+                m_state = GameState::Playing;
+            }
+            else if (action == StartScreen::Action::Quit) {
+                m_shouldQuit = true;
+            }
+        }
+        else if (m_state == GameState::Playing) {
+            m_renderer->draw(*m_world);
+            DrawFPS(10, 30);
+            m_gui->render();
+
+            if (m_gui->shouldExitToMenu()) {
+                shutdownGame();
+                m_startScreen = std::make_unique<StartScreen>();
+                m_startScreen->init();
+                m_state = GameState::StartScreen;
+            }
+        }
+
+        rlImGuiEnd();
+
+        if (m_state == GameState::Playing && m_renderer) {
+            m_renderer->drawCursor();
+        }
+
+        EndDrawing();
     }
 
-    EndDrawing();
+    bool shouldQuit() const { return m_shouldQuit || WindowShouldClose(); }
 
-    if (wantExitToMenu) {
+    void clean() {
         shutdownGame();
-
-        g_startScreen = new StartScreen();
-        g_startScreen->init();
-
-        g_state = GameState::StartScreen;
-    }
-}
-
-void clean() {
-    shutdownGame();
-
-    if (g_startScreen) {
-        g_startScreen->shutdown();
-        delete g_startScreen;
-        g_startScreen = nullptr;
+        if (m_startScreen) {
+            m_startScreen->shutdown();
+            m_startScreen.reset();
+        }
+        rlImGuiShutdown();
+        if (IsWindowReady()) CloseWindow();
     }
 
-    rlImGuiShutdown();
-}
+private:
+    GameState m_state = GameState::StartScreen;
+    bool m_shouldQuit = false;
 
-// ─── Entry point ──────────────────────────────────────────────────────────────
+    std::unique_ptr<StartScreen> m_startScreen;
+    std::unique_ptr<Renderer> m_renderer;
+    std::unique_ptr<World> m_world;
+    std::unique_ptr<InputManager> m_inputManager;
+    std::unique_ptr<Gui> m_gui;
+
+    void initGame(const WorldGenSettings& settings) {
+        m_renderer = std::make_unique<Renderer>();
+        m_renderer->init();
+
+        m_world = std::make_unique<World>();
+        m_world->init(settings.mapWidth, settings.mapHeight, settings);
+
+        m_gui = std::make_unique<Gui>();
+        m_gui->init(m_world.get(), m_renderer.get());
+
+        m_inputManager = std::make_unique<InputManager>();
+        m_inputManager->init(&m_world->getMap(), m_renderer.get(), m_gui.get());
+    }
+
+    void shutdownGame() {
+        if (m_gui) { m_gui->shutdown(); m_gui.reset(); }
+        m_renderer.reset();
+        m_world.reset();
+        m_inputManager.reset();
+    }
+};
+
 
 int main() {
-    init();
+    Game game;
+    game.init();
 
-    while (!WindowShouldClose() && !g_shouldQuit) {
+    while (!game.shouldQuit()) {
         float dt = GetFrameTime();
-        update(dt);
-        draw();
+        game.update(dt);
+        game.draw();
     }
 
-    if (IsWindowReady()) CloseWindow();
-    clean();
-
+    game.clean();
     return 0;
 }

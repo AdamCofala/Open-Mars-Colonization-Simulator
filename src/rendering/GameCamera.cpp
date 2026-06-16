@@ -49,24 +49,30 @@ void GameCamera::update_movement(float dt) {
 }
 
 void GameCamera::update_zoom(float dt) {
-	float wheel = GetMouseWheelMove();
+    float wheel = GetMouseWheelMove();
 
-	if (wheel != 0) {
-		targetZoom += wheel * zoomSpeed ;
-		targetZoom = std::max(minZoom, std::min(maxZoom, targetZoom));
-		zoomToMouse = true; // Manual scroll forces focus on mouse
-	}
+    if (wheel != 0) {
+        targetZoom += wheel * zoomSpeed;
+        targetZoom = std::max(minZoom, std::min(maxZoom, targetZoom));
+        zoomToMouse = true;
+    }
 
-	if (zoomToMouse) {
-		Vector2 mouseWorldBefore = GetScreenToWorld2D(GetMousePosition(), camera);
-		camera.zoom += (targetZoom - camera.zoom) * zoomLerpSpeed * dt;
+    if (std::abs(targetZoom - camera.zoom) < 0.001f) {
+        zoomToMouse = false;
+        camera.zoom = targetZoom;
+    }
 
-		Vector2 mouseWorldAfter = GetScreenToWorld2D(GetMousePosition(), camera);
-		camera.target.x += mouseWorldBefore.x - mouseWorldAfter.x;
-		camera.target.y += mouseWorldBefore.y - mouseWorldAfter.y;
-	} else {
-		camera.zoom += (targetZoom - camera.zoom) * zoomLerpSpeed * dt;
-	}
+    if (zoomToMouse) {
+        Vector2 mouseWorldBefore = GetScreenToWorld2D(GetMousePosition(), camera);
+        camera.zoom += (targetZoom - camera.zoom) * zoomLerpSpeed * dt;
+
+        Vector2 mouseWorldAfter = GetScreenToWorld2D(GetMousePosition(), camera);
+        camera.target.x += mouseWorldBefore.x - mouseWorldAfter.x;
+        camera.target.y += mouseWorldBefore.y - mouseWorldAfter.y;
+    }
+    else {
+        camera.zoom += (targetZoom - camera.zoom) * zoomLerpSpeed * dt;
+    }
 }
 
 Camera2D GameCamera::getCamera() const {

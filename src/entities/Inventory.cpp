@@ -22,10 +22,6 @@ float Inventory::getMaxCapacity(MaterialType type) const {
 }
 
 bool Inventory::addResource(MaterialType type, float amount) {
-    if (amount < 0.0f) {
-        items[type] += amount;
-        return true;
-    }
 
     float current = getAmount(type);
     float max = getMaxCapacity(type);

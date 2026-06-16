@@ -1,12 +1,12 @@
-// Updated World.h — adds WorldGenSettings to init()
 #pragma once
 #include "Map.h"
 #include "../entities/Inventory.h"
-#include "WorldGenSettings.h"   // NEW
+#include "WorldGenSettings.h"
+#include <memory>
 
 class World {
 private:
-    Map* map = nullptr;
+    std::unique_ptr<Map> map;
     Inventory globalInventory;
     float timeAccumulator = 0.0f;
     const float secondsPerGameDay = 5.0f;
@@ -20,7 +20,9 @@ private:
     int year = 2050;
 
 public:
-    // NEW: accepts WorldGenSettings; old default stays compatible
+    World() = default;
+    ~World() = default;
+
     void init(int mapWidth = 128, int mapHeight = 128,
         const WorldGenSettings& settings = WorldGenSettings{});
     void update(float dt);
