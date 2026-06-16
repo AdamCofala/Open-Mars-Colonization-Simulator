@@ -170,10 +170,19 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
     if (r_selectedBuildingType >= 0) {
         Vector2 pos = IsoToScreen(startX, startY, &map);
         const Tile& baseTile = map.getTile(startX, startY);
-        Color structureTint = valid_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
+        Color structureTint;
 
         if (r_selectedBuildingType == 1) {
             int mask = map.computePipeConnectionMask(startX, startY);
+		    std::vector<int>slope = baseTile.getSlopeData();
+            bool special_valic_placement = valid_placement ||
+                slope == std::vector<int>{1, 1, 0, 0} ||
+                slope == std::vector<int>{1, 0, 0, 1} ||
+                slope == std::vector<int>{0, 1, 1, 0} ||
+                slope == std::vector<int>{0, 0, 1, 1};
+
+			structureTint = special_valic_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
+
             RenderPipe(mask, pos, baseTile, structureTint);
         }
         else {
@@ -185,6 +194,7 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
             default: break;
             }
             if (tempStructure) {
+				structureTint = valid_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
                 RenderStruct(*tempStructure, pos, baseTile, structureTint);
             }
         }
