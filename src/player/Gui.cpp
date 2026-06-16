@@ -8,7 +8,7 @@
 #include "structures/SolarPanel.h"
 #include "entities/Pipe.h"
 #include "structures/IceMelter.h"
-#include "structures/WaterMagazine.h"   // <- NOWY
+#include "structures/WaterMagazine.h"
 
 #include <string>
 #include <vector>
@@ -30,25 +30,25 @@ namespace {
         SolarPanel panel(0, 0);
         Pipe pipe(0, 0);
         IceMelter melter(0, 0);
-        WaterMagazine magazine(0, 0);   // <- NOWY
+        WaterMagazine magazine(0, 0);
 
-        s_BuildingData.resize(4);       // 3 -> 4
+        s_BuildingData.resize(4);
         s_BuildingData[0] = { "Solar Panel",
-                              "Generates energy from sunlight.",
-                              "Produces: 2 Energy/s\nNo consumption",
-                              panel.getTextureId() };
+            "Generates energy from sunlight.\nHigher elevation = more power.",
+            "Produces: 1 + 0.5*level Energy/s\nRequires flat normal terrain.",
+            panel.getTextureId() };
         s_BuildingData[1] = { "Pipe",
-                              "Transfers resources between structures.",
-                              "No production/consumption\nConnects to adjacent pipes and ports.",
-                              pipe.getTextureId() };
+            "Transfers resources between structures.",
+            "Connects to adjacent pipes and ports.\nNo production/consumption.\nPlaceable on any walkable slope.",
+            pipe.getTextureId() };
         s_BuildingData[2] = { "Ice Melter",
-                              "Melts ice into water.",
-                              "Consumes: 1 Energy/s\nProduces: 1 Water/s",
-                              melter.getTextureId() };
-        s_BuildingData[3] = { "Water Magazine",                   // <- NOWY
-                              "Stores large amounts of water.",
-                              "Capacity: 3000 Water\nInput: West port\nOutput: East port",
-                              magazine.getTextureId() };
+            "Melts ice into water.\nMust be built on ice.",
+            "Consumes: 5 Energy/s\nProduces: 1 Water/s",
+            melter.getTextureId() };
+        s_BuildingData[3] = { "Water Magazine",
+            "Stores water.\nInput: West | Output: East",
+            "Capacity: 250 Water (input) + 250 (output)\nTransfers water automatically.",
+            magazine.getTextureId() };
     }
 
     const BuildingUIData& GetBuildingData(int type) {
@@ -137,7 +137,7 @@ void Gui::render() {
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit to Menu")) {
-                s_showExitConfirm = true;   // najpierw pytamy o potwierdzenie
+                s_showExitConfirm = true;
             }
             ImGui::EndMenu();
         }
@@ -210,7 +210,7 @@ void Gui::render() {
     InitBuildingData();
     const TextureManager& texMan = m_renderer->getTextureManager();
 
-    for (int i = 0; i < 4; i++) {   // <- 3 -> 4
+    for (int i = 0; i < 4; i++) {
         const BuildingUIData& data = GetBuildingData(i);
         const Texture2D& tex = texMan.StuctureTexturesInfo.at(data.textureKey);
 

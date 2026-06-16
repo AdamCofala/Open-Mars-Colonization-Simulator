@@ -1,33 +1,34 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include "Inventory.h"
 #include "Enums.h"
-
-// Stuctures need to output / input ratio, u can't just update global inventory
-// like that, you need to have some internal state that tracks how much resources the
-// structure has produced / consumed per internal time, and then update the global inventory based on that.
-// This way you can also implement structures that consume resources, like a factory that consumes energy to produce goods,
-// or a water pump that consumes energy to produce water.
 
 class Map;
 
 class Structure {
 protected:
-    std::unordered_map<MaterialType, int> productionRates; // How much of each resource the structure produces per internal time unit
+    std::unordered_map<MaterialType, int> productionRates;
     std::unordered_map<MaterialType, int> consumeRates;
     std::vector<StructurePort> m_ports;
 
     void setInternalCapacity(MaterialType type, float capacity);
+
+    // Nowe metody wirtualne – domyœlnie korzystaj¹ z map, ale klasy pochodne mog¹ je przes³oniæ
+    virtual float getProductionRate(MaterialType type, Map& map) const;
+    virtual float getConsumptionRate(MaterialType type, Map& map) const;
+    virtual std::vector<MaterialType> getProducedMaterials() const;
+    virtual std::vector<MaterialType> getConsumedMaterials() const;
+
 private:
     int x;
     int y;
     std::string textureId;
     Inventory inputInventory;
     Inventory outputInventory;
-
-    int xOffset; // How many tiles the structure occupies in x direction
-    int yOffset; // How many tiles the structure occupies in y direction
+    int xOffset;
+    int yOffset;
 
 public:
     virtual ~Structure() = default;

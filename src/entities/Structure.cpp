@@ -2,11 +2,11 @@
 
 void Structure::init(int startX, int startY, const std::string& texId, int xOffset, int yOffset)
 {
-	x = startX;
-	y = startY;
-	textureId = texId;
-	this->xOffset = xOffset;
-	this->yOffset = yOffset;
+    x = startX;
+    y = startY;
+    textureId = texId;
+    this->xOffset = xOffset;
+    this->yOffset = yOffset;
     inputInventory.init();
     outputInventory.init();
 }
@@ -18,27 +18,51 @@ void Structure::setOutputCapacity(MaterialType type, float capacity) {
     outputInventory.setMaxCapacity(type, capacity);
 }
 
-void Structure::update(float dt, Map& map) {
-    bool canOperate = true;
+float Structure::getProductionRate(MaterialType type, Map& map) const {
+    auto it = productionRates.find(type);
+    return (it != productionRates.end()) ? static_cast<float>(it->second) : 0.0f;
+}
 
-    for (const auto& [material, rate] : consumeRates) {
-        float needed = rate * dt;
-        if (needed > 0.0f && !inputInventory.hasResource(material, needed)) {
+float Structure::getConsumptionRate(MaterialType type, Map& map) const {
+    auto it = consumeRates.find(type);
+    return (it != consumeRates.end()) ? static_cast<float>(it->second) : 0.0f;
+}
+
+std::vector<MaterialType> Structure::getProducedMaterials() const {
+    std::vector<MaterialType> mats;
+    for (const auto& pair : productionRates) mats.push_back(pair.first);
+    return mats;
+}
+
+std::vector<MaterialType> Structure::getConsumedMaterials() const {
+    std::vector<MaterialType> mats;
+    for (const auto& pair : consumeRates) mats.push_back(pair.first);
+    return mats;
+}
+
+void Structure::update(float dt, Map& map) {
+    auto producedMats = getProducedMaterials();
+    auto consumedMats = getConsumedMaterials();
+
+    bool canOperate = true;
+    for (MaterialType mat : consumedMats) {
+        float needed = getConsumptionRate(mat, map) * dt;
+        if (needed > 0.0f && !inputInventory.hasResource(mat, needed)) {
             canOperate = false;
             break;
         }
     }
 
     if (canOperate) {
-        for (const auto& [material, rate] : consumeRates) {
-            float needed = rate * dt;
+        for (MaterialType mat : consumedMats) {
+            float needed = getConsumptionRate(mat, map) * dt;
             if (needed > 0.0f)
-                inputInventory.subResource(material, needed);
+                inputInventory.subResource(mat, needed);
         }
-        for (const auto& [material, rate] : productionRates) {
-            float produced = rate * dt;
+        for (MaterialType mat : producedMats) {
+            float produced = getProductionRate(mat, map) * dt;
             if (produced > 0.0f)
-                outputInventory.addResource(material, produced);
+                outputInventory.addResource(mat, produced);
         }
     }
 }
