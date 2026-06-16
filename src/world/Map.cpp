@@ -199,7 +199,7 @@ int Map::getHeight() const { return height; }
 int Map::getHalfWidth() const { return width / 2; }
 int Map::getHalfHeight() const { return height / 2; }
 
-bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset, bool isPipe) const {
+bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset, StructureType type) const {
     for (int dy = 0; dy < yOffset; ++dy) {
         for (int dx = 0; dx < xOffset; ++dx) {
             int tileX = x - dx;
@@ -209,7 +209,9 @@ bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset, bool isPipe)
             }
             const Tile& tile = getTile(tileX, tileY);
             if (tile.isOccupied()) return false;
-            if (isPipe) {
+
+            if (type == StructureType::Pipe) {
+                // Rury – tylko nachylenie, dowolny typ podłoża
                 auto slope = tile.getSlopeData();
                 bool flat = tile.isFlat();
                 bool slope1100 = (slope[0] == 1 && slope[1] == 1 && slope[2] == 0 && slope[3] == 0);
@@ -219,7 +221,17 @@ bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset, bool isPipe)
                 if (!flat && !slope1100 && !slope1001 && !slope0110 && !slope0011) return false;
             }
             else {
+                // Wszystkie inne struktury muszą być na płaskim terenie
                 if (!tile.isFlat()) return false;
+
+                // Sprawdzamy typ podłoża
+                if (type == StructureType::IceMelter) {
+                    if (tile.getType() != TileType::Ice) return false;
+                }
+                else {
+                    // SolarPanel, WaterMagazine i ewentualne przyszłe – tylko Normal
+                    if (tile.getType() != TileType::Normal) return false;
+                }
             }
         }
     }
@@ -527,7 +539,6 @@ int Map::computePipeConnectionMaskWithVirtual(int px, int py, int vx, int vy) co
         bool isVirtual = (nx == vx && ny == vy);
 
         if (isVirtual) {
-            // Duch rury zawsze pokazuje połączenie
             mask |= (8 >> i);
         }
         else {
@@ -536,7 +547,6 @@ int Map::computePipeConnectionMaskWithVirtual(int px, int py, int vx, int vy) co
             if (neighbor->isPipe()) {
                 const Pipe* neighborPipe = static_cast<const Pipe*>(neighbor);
                 MaterialType hisType = neighborPipe->getMaterialType();
-                // 🔧 Połączenie także dla pary NONE
                 if ((myType == MaterialType::NONE && hisType == MaterialType::NONE) ||
                     (myType != MaterialType::NONE && hisType != MaterialType::NONE && myType == hisType)) {
                     mask |= (8 >> i);

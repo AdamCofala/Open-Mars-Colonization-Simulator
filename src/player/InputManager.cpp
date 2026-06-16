@@ -2,7 +2,7 @@
 #include "rendering/Renderer.h"
 #include "structures/SolarPanel.h"
 #include "structures/IceMelter.h"
-#include "structures/WaterMagazine.h"   // <- NOWY
+#include "structures/WaterMagazine.h"
 #include "entities/Pipe.h"
 #include "player/Gui.h"
 #include "imgui.h"
@@ -44,7 +44,7 @@ void InputManager::update()
         m_selectedTileOffset = { (float)melter.getXOffset(), (float)melter.getYOffset() };
         m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
     }
-    else if (tool == Gui::SelectedTool::Build && selectedBuilding == 3) {   // <- NOWY
+    else if (tool == Gui::SelectedTool::Build && selectedBuilding == 3) {
         WaterMagazine magazine(0, 0);
         m_selectedTileOffset = { (float)magazine.getXOffset(), (float)magazine.getYOffset() };
         m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
@@ -66,7 +66,7 @@ void InputManager::update()
             int sy = (int)m_selectedTile.y;
             int xOff = tempPanel.getXOffset();
             int yOff = tempPanel.getYOffset();
-            if (m_map->canPlaceStructure(sx, sy, xOff, yOff, false)) {
+            if (m_map->canPlaceStructure(sx, sy, xOff, yOff, StructureType::SolarPanel)) {
                 auto newBuilding = std::make_unique<SolarPanel>(sx, sy);
                 m_map->addStructure(std::move(newBuilding));
                 if (m_gui) m_gui->setSelectedTool(Gui::SelectedTool::Select);
@@ -81,7 +81,7 @@ void InputManager::update()
             int sy = (int)m_selectedTile.y;
             int xOff = tempPipe.getXOffset();
             int yOff = tempPipe.getYOffset();
-            if (m_map->canPlaceStructure(sx, sy, xOff, yOff, true)) {
+            if (m_map->canPlaceStructure(sx, sy, xOff, yOff, StructureType::Pipe)) {
                 auto newPipe = std::make_unique<Pipe>(sx, sy);
                 m_map->addStructure(std::move(newPipe));
                 m_selectedTile = { -1, -1 };
@@ -95,7 +95,7 @@ void InputManager::update()
             int sy = (int)m_selectedTile.y;
             int xOff = tempMelter.getXOffset();
             int yOff = tempMelter.getYOffset();
-            if (m_map->canPlaceStructure(sx, sy, xOff, yOff, false)) {
+            if (m_map->canPlaceStructure(sx, sy, xOff, yOff, StructureType::IceMelter)) {
                 auto newMelter = std::make_unique<IceMelter>(sx, sy);
                 m_map->addStructure(std::move(newMelter));
                 if (m_gui) m_gui->setSelectedTool(Gui::SelectedTool::Select);
@@ -104,13 +104,13 @@ void InputManager::update()
                 m_renderer->setSelectedTile(m_selectedTile, m_selectedTileOffset);
             }
         }
-        else if (tool == Gui::SelectedTool::Build && selectedBuilding == 3) {   // <- NOWY
+        else if (tool == Gui::SelectedTool::Build && selectedBuilding == 3) {
             WaterMagazine tempMag(0, 0);
             int sx = (int)m_selectedTile.x;
             int sy = (int)m_selectedTile.y;
             int xOff = tempMag.getXOffset();
             int yOff = tempMag.getYOffset();
-            if (m_map->canPlaceStructure(sx, sy, xOff, yOff, false)) {
+            if (m_map->canPlaceStructure(sx, sy, xOff, yOff, StructureType::WaterMagazine)) {
                 auto newMag = std::make_unique<WaterMagazine>(sx, sy);
                 m_map->addStructure(std::move(newMag));
                 if (m_gui) m_gui->setSelectedTool(Gui::SelectedTool::Select);

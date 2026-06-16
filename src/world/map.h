@@ -3,9 +3,9 @@
 #include <memory>
 #include "Tile.h"
 #include "entities/Structure.h"
-#include "../entities/Pipe.h"
-#include "../entities/PipeNetwork.h"
-#include "WorldGenSettings.h"   // NEW
+#include "entities/Pipe.h"
+#include "entities/PipeNetwork.h"
+#include "WorldGenSettings.h"
 
 class Map {
 private:
@@ -19,7 +19,7 @@ private:
 
 public:
     void init(int w, int h);
-    void generateTerrain(const WorldGenSettings& settings = WorldGenSettings{});   // NEW signature
+    void generateTerrain(const WorldGenSettings& settings = WorldGenSettings{});
 
     Tile& getTile(int x, int y) const;
 
@@ -31,7 +31,7 @@ public:
     int getHalfWidth() const;
     int getHalfHeight() const;
 
-    bool canPlaceStructure(int x, int y, int xOffset, int yOffset, bool isPipe = false) const;
+    bool canPlaceStructure(int x, int y, int xOffset, int yOffset, StructureType type) const;
 
     void addStructure(std::unique_ptr<Structure> structure);
     void rebuildNetworks();

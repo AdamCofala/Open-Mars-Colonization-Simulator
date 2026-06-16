@@ -3,7 +3,7 @@
 #include "world/World.h"
 #include "utils/Math.h"
 #include "entities/Pipe.h"
-#include "structures/WaterMagazine.h"   // <- NOWY
+#include "structures/WaterMagazine.h"
 #include "raylib.h"
 #include <stdexcept>
 #include <iostream>
@@ -147,6 +147,16 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
     int startX = (int)r_selectedTile.x;
     int startY = (int)r_selectedTile.y;
 
+    // Mapowanie indeksu z GUI na StructureType
+    StructureType stype = StructureType::Pipe; // domyślnie, gdyby coś poszło nie tak
+    switch (r_selectedBuildingType) {
+    case 0: stype = StructureType::SolarPanel; break;
+    case 1: stype = StructureType::Pipe;       break;
+    case 2: stype = StructureType::IceMelter;  break;
+    case 3: stype = StructureType::WaterMagazine; break;
+    default: break;
+    }
+
     if (r_selectedTool == Gui::SelectedTool::Demolish) {
         const Tile& tile = map.getTile(startX, startY);
         const Structure* structure = tile.getStructure();
@@ -165,7 +175,7 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
         return;
     }
 
-    bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y);
+    bool valid_placement = map.canPlaceStructure(startX, startY, (int)offset.x, (int)offset.y, stype);
 
     if (r_selectedBuildingType >= 0) {
         Vector2 pos = IsoToScreen(startX, startY, &map);
@@ -174,15 +184,14 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
 
         if (r_selectedBuildingType == 1) {
             int mask = map.computePipeConnectionMask(startX, startY);
-		    std::vector<int>slope = baseTile.getSlopeData();
+            std::vector<int>slope = baseTile.getSlopeData();
             bool special_valic_placement = valid_placement ||
                 slope == std::vector<int>{1, 1, 0, 0} ||
                 slope == std::vector<int>{1, 0, 0, 1} ||
                 slope == std::vector<int>{0, 1, 1, 0} ||
                 slope == std::vector<int>{0, 0, 1, 1};
 
-			structureTint = special_valic_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
-
+            structureTint = special_valic_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
             RenderPipe(mask, pos, baseTile, structureTint);
         }
         else {
@@ -190,11 +199,11 @@ void Renderer::RenderSelected(const Map& map, Vector2 offset, Color tint) {
             switch (r_selectedBuildingType) {
             case 0: tempStructure = std::make_unique<SolarPanel>(0, 0); break;
             case 2: tempStructure = std::make_unique<IceMelter>(0, 0);  break;
-            case 3: tempStructure = std::make_unique<WaterMagazine>(0, 0); break; // <- NOWY
+            case 3: tempStructure = std::make_unique<WaterMagazine>(0, 0); break;
             default: break;
             }
             if (tempStructure) {
-				structureTint = valid_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
+                structureTint = valid_placement ? Fade(WHITE, 0.5f) : Fade(RED, 0.5f);
                 RenderStruct(*tempStructure, pos, baseTile, structureTint);
             }
         }
