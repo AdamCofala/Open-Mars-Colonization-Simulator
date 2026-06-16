@@ -4,10 +4,10 @@
 #include <random>
 #include <queue>
 #include <fstream>
-#include "../structures/SolarPanel.h"
-#include "../entities/Pipe.h"
-#include "../structures/IceMelter.h"
-#include "../structures/WaterMagazine.h"
+#include "structures/SolarPanel.h"
+#include "entities/Pipe.h"
+#include "structures/IceMelter.h"
+#include "structures/WaterMagazine.h"
 
 void Map::init(int w, int h) {
     if (w <= 0 || h <= 0) {
@@ -64,7 +64,6 @@ static int randInt(int min, int max) {
     std::uniform_int_distribution<int> dist(min, max);
     return dist(rng);
 }
-
 
 void Map::generateTerrain(const WorldGenSettings& settings) {
     unsigned int seed = (settings.seed >= 0) ? (unsigned int)settings.seed
@@ -203,8 +202,8 @@ int Map::getHalfHeight() const { return height / 2; }
 bool Map::canPlaceStructure(int x, int y, int xOffset, int yOffset, bool isPipe) const {
     for (int dy = 0; dy < yOffset; ++dy) {
         for (int dx = 0; dx < xOffset; ++dx) {
-            int tileX = x - dx;   // w lewo (oryginalny kierunek)
-            int tileY = y - dy;   // w górę
+            int tileX = x - dx;
+            int tileY = y - dy;
             if (tileX < 0 || tileX >= width || tileY < 0 || tileY >= height) {
                 return false;
             }
@@ -296,15 +295,14 @@ void Map::rebuildNetworks() {
                 if (mat == MaterialType::NONE) continue;
 
                 if (detectedType == MaterialType::NONE) {
-                    detectedType = mat; // pierwszy znaleziony typ
+                    detectedType = mat;
                 }
                 else if (detectedType != mat) {
-                    conflict = true; // dwa różne typy z różnych stron
+                    conflict = true;
                     break;
                 }
             }
 
-            // Ustaw typ tylko jeśli nie ma konfliktu
             if (!conflict && detectedType != MaterialType::NONE) {
                 p->setMaterialType(detectedType);
                 changed = true;
@@ -312,7 +310,6 @@ void Map::rebuildNetworks() {
         }
     }
 
-    // --- FAZA 1: OBLICZANIE MASKI POŁĄCZEŃ ---
     for (Pipe* p : allPipes) {
         int px = p->getX();
         int py = p->getY();
@@ -340,10 +337,8 @@ void Map::rebuildNetworks() {
                         MaterialType myType = p->getMaterialType();
                         MaterialType hisType = neighborPipe->getMaterialType();
 
-                        // Obaj muszą mieć typ I muszą być zgodne
-                        if (myType != MaterialType::NONE &&
-                            hisType != MaterialType::NONE &&
-                            myType == hisType) {
+                        if ((myType == MaterialType::NONE && hisType == MaterialType::NONE) ||
+                            (myType != MaterialType::NONE && hisType != MaterialType::NONE && myType == hisType)) {
                             mask |= (8 >> i);
                         }
                     }
@@ -374,7 +369,6 @@ void Map::rebuildNetworks() {
         p->setConnectionMask(mask);
     }
 
-    // --- FAZA 2: BUDOWANIE LOGICZNYCH SIECI ---
     for (Pipe* p : allPipes) {
         if (p->network != nullptr) continue;
 
@@ -401,7 +395,6 @@ void Map::rebuildNetworks() {
                     if (neighbor) {
                         if (neighbor->isPipe()) {
                             Pipe* neighborPipe = static_cast<Pipe*>(neighbor);
-                            // Łącz logicznie tylko jeśli typy są zgodne
                             if (neighborPipe->network == nullptr) {
                                 MaterialType myType = current->getMaterialType();
                                 MaterialType hisType = neighborPipe->getMaterialType();
@@ -470,29 +463,6 @@ int Map::computePipeConnectionMask(int px, int py) const {
     else if (slope0110) return 2;
     else if (slope0011) return 4;
 
-    // Najpierw ustal typ wirtualnej rury (tak jak Faza 0)
-    MaterialType virtualType = MaterialType::NONE;
-    for (int i = 0; i < 4; ++i) {
-        int nx = px + directionsX[i];
-        int ny = py + directionsY[i];
-        if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
-        const Structure* neighbor = getTile(nx, ny).getStructure();
-        if (!neighbor) continue;
-
-        MaterialType mat = MaterialType::NONE;
-        if (neighbor->isPipe()) {
-            mat = static_cast<const Pipe*>(neighbor)->getMaterialType();
-        }
-        else {
-            Direction hisDir = static_cast<Direction>((i + 2) % 4);
-            mat = neighbor->getMaterialAtPort(px, py, hisDir);
-        }
-        if (mat != MaterialType::NONE) {
-            if (virtualType == MaterialType::NONE) virtualType = mat;
-            else if (virtualType != mat) { virtualType = MaterialType::NONE; break; }
-        }
-    }
-
     int mask = 0;
     for (int i = 0; i < 4; ++i) {
         int nx = px + directionsX[i];
@@ -501,13 +471,7 @@ int Map::computePipeConnectionMask(int px, int py) const {
             const Structure* neighbor = getTile(nx, ny).getStructure();
             if (neighbor) {
                 if (neighbor->isPipe()) {
-                    const Pipe* neighborPipe = static_cast<const Pipe*>(neighbor);
-                    MaterialType hisType = neighborPipe->getMaterialType();
-                    if (virtualType != MaterialType::NONE &&
-                        hisType != MaterialType::NONE &&
-                        virtualType == hisType) {
-                        mask |= (8 >> i);
-                    }
+                    mask |= (8 >> i);
                 }
                 else {
                     Direction hisDir = static_cast<Direction>((i + 2) % 4);
@@ -521,12 +485,18 @@ int Map::computePipeConnectionMask(int px, int py) const {
     }
 
     int popcnt = (mask & 1) + ((mask >> 1) & 1) + ((mask >> 2) & 1) + ((mask >> 3) & 1);
-    if (popcnt == 0) mask = 10;
+    if (popcnt == 0) {
+        mask = 10;
+    }
     else if (popcnt == 1) {
         for (int i = 0; i < 4; ++i) {
-            if (mask & (8 >> i)) { mask |= (8 >> ((i + 2) % 4)); break; }
+            if (mask & (8 >> i)) {
+                mask |= (8 >> ((i + 2) % 4));
+                break;
+            }
         }
     }
+
     return mask;
 }
 
@@ -543,14 +513,10 @@ int Map::computePipeConnectionMaskWithVirtual(int px, int py, int vx, int vy) co
     if (slope[0] == 0 && slope[1] == 1 && slope[2] == 1 && slope[3] == 0) return 2;
     if (slope[0] == 0 && slope[1] == 0 && slope[2] == 1 && slope[3] == 1) return 4;
 
-    // Typ tej istniejącej rury
     const Structure* self = getTile(px, py).getStructure();
     MaterialType myType = MaterialType::NONE;
     if (self && self->isPipe())
         myType = static_cast<const Pipe*>(self)->getMaterialType();
-
-    // Typ wirtualnej rury (z computePipeConnectionMask)
-    MaterialType virtualType = computeVirtualPipeType(vx, vy);
 
     int mask = 0;
     for (int i = 0; i < 4; ++i) {
@@ -561,12 +527,8 @@ int Map::computePipeConnectionMaskWithVirtual(int px, int py, int vx, int vy) co
         bool isVirtual = (nx == vx && ny == vy);
 
         if (isVirtual) {
-            // Łącz z wirtualną rurą tylko jeśli typy są zgodne
-            if (myType != MaterialType::NONE &&
-                virtualType != MaterialType::NONE &&
-                myType == virtualType) {
-                mask |= (8 >> i);
-            }
+            // Duch rury zawsze pokazuje połączenie
+            mask |= (8 >> i);
         }
         else {
             const Structure* neighbor = getTile(nx, ny).getStructure();
@@ -574,9 +536,9 @@ int Map::computePipeConnectionMaskWithVirtual(int px, int py, int vx, int vy) co
             if (neighbor->isPipe()) {
                 const Pipe* neighborPipe = static_cast<const Pipe*>(neighbor);
                 MaterialType hisType = neighborPipe->getMaterialType();
-                if (myType != MaterialType::NONE &&
-                    hisType != MaterialType::NONE &&
-                    myType == hisType) {
+                // 🔧 Połączenie także dla pary NONE
+                if ((myType == MaterialType::NONE && hisType == MaterialType::NONE) ||
+                    (myType != MaterialType::NONE && hisType != MaterialType::NONE && myType == hisType)) {
                     mask |= (8 >> i);
                 }
             }
@@ -621,7 +583,7 @@ MaterialType Map::computeVirtualPipeType(int px, int py) const {
         }
         if (mat == MaterialType::NONE) continue;
         if (detected == MaterialType::NONE) detected = mat;
-        else if (detected != mat) return MaterialType::NONE; // konflikt
+        else if (detected != mat) return MaterialType::NONE;
     }
     return detected;
 }
@@ -629,7 +591,7 @@ MaterialType Map::computeVirtualPipeType(int px, int py) const {
 void Map::removeStructureAt(int tileX, int tileY) {
     Tile& tile = getTile(tileX, tileY);
     Structure* structPtr = tile.getStructure();
-    if (!structPtr) return; // nic do wyburzenia
+    if (!structPtr) return;
 
     int baseX = structPtr->getX();
     int baseY = structPtr->getY();
