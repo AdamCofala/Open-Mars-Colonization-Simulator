@@ -39,4 +39,7 @@ public:
 
     void save(const std::string& path);
     void load(const std::string& path);
+
+    void saveToSlot(int slot);
+    void loadFromSlot(int slot);
 };
