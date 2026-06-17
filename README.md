@@ -17,9 +17,9 @@ The game is currently in **alpha** (`v1.0.0-alpha.1`).
 | | |
 |---|---|
 | ![Main Menu](https://github.com/user-attachments/assets/5544c09a-b3d6-4477-89fe-4509df7e390b) | ![Terrain Generation](https://github.com/user-attachments/assets/16a77218-b878-462a-8834-1cb106a41d3d) |
-| *Main menu with animated Martian sky* | *Procedurally generated terrain with ice deposits* |
+| *Main menu with animated Martian sky* |  *Custom world generation engine* |
 | ![Colony Building](https://github.com/user-attachments/assets/d7fb5589-9a97-4a46-ac66-584d543f05c1) | ![Pipe Networks](https://github.com/user-attachments/assets/eb7be4e6-adb2-45c5-be0b-be70f17f1ea9) |
-| *Colony with solar panels and pipe infrastructure* | *Pipe routing across slopes and flat terrain* |
+| *Colony with solar panels and pipe infrastructure* |  *Procedurally generated terrain with ice deposits* |
 
 
 ---
