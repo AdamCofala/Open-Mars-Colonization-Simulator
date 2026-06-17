@@ -167,9 +167,9 @@ void Gui::render() {
             ImGui::EndMenu();
         }
         if (m_world) {
-            std::string dateText = "Day " + std::to_string(m_world->getDay()) +
-                " - Sol " + std::to_string(m_world->getMonth()) +
-                " - " + std::to_string(m_world->getYear());
+            std::string dateText = "Sol " + std::to_string(m_world->getDay()) +
+                " - Month " + std::to_string(m_world->getMonth()) +
+                " - Year " + std::to_string(m_world->getYear());
             float textWidth = ImGui::CalcTextSize(dateText.c_str()).x;
             ImGui::SameLine(ImGui::GetWindowWidth() - textWidth - 20.0f);
             ImGui::TextUnformatted(dateText.c_str());
