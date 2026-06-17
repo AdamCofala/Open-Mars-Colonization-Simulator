@@ -1,5 +1,4 @@
-﻿// Plik: src/player/StartScreen.h – bez zmian w interfejsie, dodano Screen::Generating i metody prywatne.
-#pragma once
+﻿#pragma once
 #include "raylib.h"
 #include "imgui.h"
 #include "rlImGui.h"
