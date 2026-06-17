@@ -1,116 +1,159 @@
-﻿# Open Mars
+# Open Mars
 
-> Adam Cofała (343007), Jakub Sałata (343064)
-
----
-
-
-## 1. O grze
-
-**Open Mars** to turbo-wczesna alfa gry w stylu Transport Tycoon / Factorio, ale na Marsie. Gracz terraformuje i zasiedla proceduralnie generowaną mapę, budując infrastrukturę energetyczną i wodną, która pozwala kolonii przeżyć.
-
-### Mechaniki
-
-**Generowanie świata**
-Mapa powstaje z szumem Perlina z domain warpingiem – można regulować chropowatość, wysokość terenu, siłę warpingu i próg lodowych złóż. Teren jest kwadratowy (64×64 do 192×192), a każdy kafelek może być płaski lub mieć jeden z czterech typów nachylenia.
-
-**Izometryczny rendering**
-Kafelki renderowane są w rzucie izometrycznym (painter’s algorithm, back-to-front). Każdy kafelek ma 4 narożniki z indywidualnymi wysokościami, co daje płynne, rzeźbiarskie zbocza. Rury mają specjalną logikę sortowania.
-
-**Budynki**
-
-- **Solar Panel** – produkuje energię; wydajność rośnie z wysokością terenu
-- **Ice Melter** – konsumuje energię, produkuje wodę; musi stać na lodzie
-- **Water Magazine** – zbiornik wody z wejściem i wyjściem
-- **Pipe** – łączy budynki w sieci przesyłowe
-
-**Sieci rur (PipeNetwork)**
-Rury wykrywają sąsiadów automatycznie i łączą się w logiczne sieci. Każda sieć ma typ materiału (woda / energia), listę producentów i konsumentów. Każdą turę zasoby są dystrybuowane proporcjonalnie między konsumentów.
-
-**Czas gry**
-Świat ma własny kalendarz (dzień / miesiąc / rok, start: 2050). Prędkość symulacji można skalować z GUI. Wszystko można zapisać i wczytać binarnie.
+> A pixel-art isometric colony survival simulator set on the red planet. Inspirated by games like OpenTTD and Surviving Mars. Relase version soon!
 
 ---
 
-## 2. Struktura klas
+## Overview
 
-```
-Game
-├── World
-│   ├── Map
-│   │   ├── Tile
-│   │   ├── Structure
-│   │   │   ├── SolarPanel
-│   │   │   ├── IceMelter
-│   │   │   ├── WaterMagazine
-│   │   │   └── Pipe
-│   │   └── PipeNetwork
-│   └── Inventory
-├── Renderer
-│   ├── GameCamera
-│   └── TextureManager
-├── InputManager
-├── Gui
-└── StartScreen
-```
+**Open Mars** is an isometric colony-building game where you establish and grow a self-sustaining human settlement on Mars. Manage energy production, water extraction, and resource logistics across procedurally generated Martian terrain — all rendered in a retro pixel-art isometric style.
 
-| Klasa | Co robi |
+The game is currently in **alpha** (`v1.0.0-alpha.1`).
+
+---
+
+## Screenshots
+
+| | |
 |---|---|
-| `Game` | Główna pętla, state machine (StartScreen / Playing) |
-| `World` | Trzyma mapę, inwentarz globalny i czas gry |
-| `Map` | Siatka kafelków, lista struktur, sieci rur, logika stawiania/burzenia |
-| `Tile` | Pojedynczy kafelek – poziom, nachylenie (4 bity), typ, wskaźnik na strukturę |
-| `Structure` | Klasa bazowa – pozycja, porty, dwa inwentarze, raty produkcji/konsumpcji |
-| `SolarPanel` | Produkuje energię, więcej na wyższym terenie |
-| `IceMelter` | Zamienia energię w wodę, musi stać na lodzie |
-| `WaterMagazine` | Zbiornik wody z wejściem i wyjściem |
-| `Pipe` | Rura – maska połączeń (4 bity), typ materiału, referencja do sieci |
-| `PipeNetwork` | Logiczna sieć rur – dystrybuuje zasoby od producentów do konsumentów |
-| `Inventory` | Magazyn zasobów z kontrolą pojemności |
-| `Renderer` | Izometryczny rendering terenu i struktur, painter’s algorithm |
-| `GameCamera` | Kamera 2D – pan (WSAD/RMB), smooth zoom do pozycji myszy |
-| `TextureManager` | Ładuje atlasy tekstur, lookup bitowy -> maska -> prostokąt |
-| `InputManager` | Zaznaczanie kafelków (ray-cast na height-mapy), stawianie, burzenie |
-| `Gui` | Panel ImGui – narzędzia, budynki, prędkość, zapis/odczyt |
-| `StartScreen` | Animowane menu główne, kreator świata, ekran ładowania |
+| ![Main Menu](https://github.com/user-attachments/assets/5544c09a-b3d6-4477-89fe-4509df7e390b) | ![Terrain Generation](https://github.com/user-attachments/assets/16a77218-b878-462a-8834-1cb106a41d3d) |
+| *Main menu with animated Martian sky* | *Procedurally generated terrain with ice deposits* |
+| ![Colony Building](https://github.com/user-attachments/assets/d7fb5589-9a97-4a46-ac66-584d543f05c1) | ![Pipe Networks](https://github.com/user-attachments/assets/eb7be4e6-adb2-45c5-be0b-be70f17f1ea9) |
+| *Colony with solar panels and pipe infrastructure* | *Pipe routing across slopes and flat terrain* |
+
+
+---
+## Features
+
+### World Generation
+- Procedural terrain using **Perlin noise with domain warping**
+- Configurable roughness, elevation, and warp strength
+- Ice deposit generation in natural basins
+- Three map sizes: Small (64×64), Medium (128×128), Large (192×192)
+- Seed-based generation for reproducible worlds
+
+### Buildings
+| Structure | Function |
+|---|---|
+| **Solar Panel** | Produces energy; output scales with terrain elevation |
+| **Pipe** | Routes materials between producers and consumers |
+| **Ice Melter** | Consumes energy to melt ice into water |
+| **Water Magazine** | Stores and buffers water supply |
+
+### Pipe Networks
+- Automatic network detection and merging on placement
+- Material-type propagation (energy vs. water — no cross-contamination)
+- Pipe routing across flat terrain and four valid slope orientations
+- Real-time resource transfer between producers and consumers
+
+### Simulation
+- Tick-based resource production and consumption
+- Inventory system with per-material capacity limits
+- Adjustable game speed
+- In-game calendar (day / month / year)
+
+### Rendering
+- Isometric projection with height-aware tile picking
+- Painter's algorithm render ordering for correct depth
+- Slope-aware tile and pipe texture selection via 4-bit mask atlas lookup
+- Ice tile variant rendering
+- Custom pixel-art cursor
+
+### Save / Load
+- Binary save format with full world state serialization
+- Slot-based save system
 
 ---
 
-## 3. Co planowaliśmy vs. co wyszło
+## Controls
 
-### Wyszło
-
-- Proceduralne generowanie terenu z Perlin noise + domain warping + saddle-fix
-- Izometryczny renderer z detekcją kafelków po mapie wysokości (height-map tile-picking)
-- System rur z automatycznym wykrywaniem sieci i propagacją materiałów
-- Pełny zapis/odczyt binarny (mapa, struktury, sieci, inwentarz, czas)
-- Animowany start screen (pikselowe góry, gwiazdy, słońce po paraboli)
-- Demolish tool z podglądem usuwania
-- Regulacja prędkości symulacji
-
-### Nie wyszło / planujemy dodać
-
-- **Bardziej zaawansowane budynki** – SolarPanel i IceMelter mają offset 3×3, ale logika kolizji jest prosta i nie obsługuje rotacji
-- **AI kolonistów** – planowano agentów poruszających się po mapie
-- **Więcej surowców** – struktura `MaterialType` jest przygotowana na rozszerzenie, ale gra ma tylko energię i wodę
-- **Badania / tech tree** – nie zaczęte
-- **Dźwięk** – muzyczka, efekty stawiania
-- **Kampania / misje** – gra jest sandbox bez żadnego celu końcowego
+| Input | Action |
+|---|---|
+| `W / A / S / D` | Pan camera |
+| `Mouse wheel` | Zoom (anchored to cursor) |
+| `Right / Middle mouse button` | Drag-pan camera |
+| `Left click` | Place / demolish structure |
+| `ImGui toolbar` | Select tool and building type |
 
 ---
 
-## 4. Wnioski
+## Building
 
-### Wnioski ogólne
+### Requirements
 
-- Architektura oparta na izolowaniu logiki w oddzielnych klasach (Map, Tile, Structure) sprawdziła się przy zarządzaniu stanem, jednak rozbudowa o nowe typy budynków wymagała ręcznych zmian w wielu miejscach (switch/case), co spowalnia aktualizowanie o nowe struktury.
+- C++17 compiler (MSVC / GCC / Clang)
+- [raylib](https://www.raylib.com/)
+- [Dear ImGui](https://github.com/ocornut/imgui) + `rlImGui` binding
+- CMake 3.16+
 
-- Zapis/odczyt świata okazał się wydajny i prosty w implementacji, ale brak wersjonowania schematu danych utrudni długoterminową kompatybilność zapisów.
+### Build steps
 
-- Najwięcej czasu pochłonęło zapewnienie spójności między logiczną reprezentacją sieci rur a ich wyświetlaniem – szczególnie w przypadku dynamicznego dodawania i usuwania połączeń.
+```bash
+git clone https://github.com/AdamCofala/Open-Mars-Colonization-Simulator.git
+cd open-mars
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
 
-- Projekty typu sandbox bez zdefiniowanego celu końcowego cierpią na brak wyraźnego zakończenia; warto byłoby już na wczesnym etapie wprowadzić choćby proste zadania, aby nadać rozgrywce kierunek.
+The binary expects a `resources/` directory alongside the executable containing the texture atlases:
 
-### Użycie AI
+```
+resources/
+├── tile_atlas.png
+├── pipe_atlas.png
+├── ice_atlas.png
+├── cursor.png
+├── solar_panels.png
+├── ice_melter.png
+├── pipe.png
+└── water_magazine.png
+```
 
-AI znacząco przyspieszyło pisanie szablonowego kodu: generowanie klas save/load, układy ImGui, implementację podstawowych rzeczy w oop np. getter'ów. Wyzwania pojawiły się przy logice ściśle powiązanej z architekturą projektu – np. algorytm porządkowania rur (pipe reordering) wymagał wielu prób i ręcznych poprawek, ponieważ model nie rozumiał pełnego kontekstu systemu. Wniosek: AI doskonale sprawdza się przy szybkim tworzeniu szkieletu, ale przy złożonych zależnościach między modułami konieczne jest samodzielne myślenie.
+---
+
+## Architecture
+
+```
+src/
+├── core/           # Game loop and state machine (main.cpp)
+├── entities/       # Structure, Pipe, PipeNetwork, Inventory, Enums
+├── structures/     # Concrete buildings (SolarPanel, IceMelter, WaterMagazine)
+├── world/          # Map, Tile, World, WorldGenSettings
+├── rendering/      # Renderer, GameCamera, TextureManager
+├── player/         # InputManager, Gui, StartScreen
+└── utils/          # PerlinNoise, Math, SaveSystem
+```
+
+Key design points:
+
+- **`Map::rebuildNetworks()`** — full network graph reconstruction on every structural change; handles material-type propagation in a fixed-point loop before connection mask calculation.
+- **`PipeNetwork::updateNetwork()`** — proportional resource distribution across all producers and consumers each tick.
+- **Texture atlas** — slope and pipe variants indexed by a 4-bit binary mask derived from corner height deltas or neighbor connectivity.
+
+---
+
+## Roadmap
+
+- [ ] Native file dialog for save/load
+- [ ] Additional resource types and buildings
+- [ ] Music and sound
+- [ ] Colonist simulation
+- [ ] Dust storms and environmental events
+- [ ] Research tree
+- [ ] Multiplayer (long-term)
+
+---
+
+## License
+
+This project is open source and released under the [MIT License](LICENSE).
+
+---
+
+## Special Thanks
+- Jakub Sałata @JLetuce
+- Jędrzej Tymiński @Kayla137
+
+---
+
+*Built with [raylib](https://www.raylib.com/) and [Dear ImGui](https://github.com/ocornut/imgui).*
